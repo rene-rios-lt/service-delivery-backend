@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ServiceDelivery.Api/ServiceDelivery.Api.csproj" />
+    <Project Path="src/ServiceDelivery.Application/ServiceDelivery.Application.csproj" />
+    <Project Path="src/ServiceDelivery.Domain/ServiceDelivery.Domain.csproj" />
+    <Project Path="src/ServiceDelivery.Infrastructure/ServiceDelivery.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ServiceDelivery.Application.Tests/ServiceDelivery.Application.Tests.csproj" />
+    <Project Path="tests/ServiceDelivery.Domain.Tests/ServiceDelivery.Domain.Tests.csproj" />
+    <Project Path="tests/ServiceDelivery.Infrastructure.Tests/ServiceDelivery.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
