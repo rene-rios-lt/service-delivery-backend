@@ -9,8 +9,11 @@ This is the backend repository for the Service Delivery system. It contains a .N
 ## Commands
 
 ```bash
-# Build
+# Build all projects
 dotnet build
+
+# Build a single project
+dotnet build src/ServiceDelivery.Api
 
 # Run the API
 dotnet run --project src/ServiceDelivery.Api
@@ -20,11 +23,13 @@ dotnet test
 
 # Run a single test project
 dotnet test tests/ServiceDelivery.Domain.Tests
+dotnet test tests/ServiceDelivery.Application.Tests
+dotnet test tests/ServiceDelivery.Infrastructure.Tests
 
 # Run a single test by name
 dotnet test --filter "FullyQualifiedName~YourTestName"
 
-# Terraform (from terraform/)
+# Terraform (run from terraform/ directory)
 terraform init -backend-config=environments/dev/backend.tfvars
 terraform plan -var-file=environments/dev/terraform.tfvars
 terraform apply -var-file=environments/dev/terraform.tfvars
@@ -32,24 +37,74 @@ terraform apply -var-file=environments/dev/terraform.tfvars
 
 ## Architecture
 
-Clean Architecture with four layers. Dependency rule: inner layers never reference outer layers.
+Clean Architecture with four layers. The dependency rule is strict: inner layers never reference outer layers.
 
 ```
-Domain → Application → Infrastructure
-                    → Api
+Domain  ←  Application  ←  Infrastructure
+                        ←  Api (composition root only)
 ```
 
-- **Domain** (`src/ServiceDelivery.Domain`) — pure business logic. Entities, value objects, domain events, repository interfaces. Zero external dependencies.
-- **Application** (`src/ServiceDelivery.Application`) — use cases via CQRS (commands/queries). Defines `IRepository` and service interfaces consumed by Infrastructure. Depends only on Domain.
-- **Infrastructure** (`src/ServiceDelivery.Infrastructure`) — EF Core DbContext, repository implementations, Azure service integrations. Depends on Domain + Application.
-- **Api** (`src/ServiceDelivery.Api`) — ASP.NET Core host, controllers or minimal endpoints, middleware, DI wiring. Depends on Application + Infrastructure (for DI registration only).
+- **Domain** (`src/ServiceDelivery.Domain`) — `net10.0` class library. Pure business logic: entities (`Entities/`), value objects (`ValueObjects/`), domain events (`Events/`), and repository interfaces (`Interfaces/`). Zero external dependencies — this project references nothing.
+- **Application** (`src/ServiceDelivery.Application`) — `net10.0` class library. Use cases implemented via CQRS: commands and queries in `Features/<FeatureName>/Commands/` and `Features/<FeatureName>/Queries/`. Pipeline behaviors in `Common/Behaviors/`. Application-level service interfaces in `Common/Interfaces/`. References Domain only.
+- **Infrastructure** (`src/ServiceDelivery.Infrastructure`) — `net10.0` class library. EF Core DbContext in `Persistence/`, repository implementations in `Repositories/`, external Azure service integrations in `Services/`. References Domain and Application.
+- **Api** (`src/ServiceDelivery.Api`) — `net10.0` ASP.NET Core Web API. Controllers or minimal endpoints in `Controllers/`, custom middleware in `Middleware/`. This is the composition root — it wires DI and references Application and Infrastructure. Business logic never lives here.
+
+## Project References (enforced by .csproj)
+
+```
+Domain          → no references
+Application     → Domain only
+Infrastructure  → Domain, Application
+Api             → Application, Infrastructure
+Domain.Tests    → Domain
+Application.Tests → Application, Domain
+Infrastructure.Tests → Infrastructure
+```
+
+Any code that would require violating this graph belongs in a different layer.
+
+## SOLID Principles
+
+All additions and modifications to this repo must follow these principles, mapped directly to the Clean Architecture layers.
+
+### S — Single Responsibility
+Each layer has exactly one job:
+- **Domain** = business rules and invariants
+- **Application** = orchestrating use cases
+- **Infrastructure** = talking to external systems (DB, Azure, APIs)
+- **Api** = HTTP concerns and DI wiring only
+
+Each class should have one reason to change. A command handler that also sends emails violates SRP — the email concern belongs in an application service interface (`Common/Interfaces/`) with the implementation in Infrastructure.
+
+### O — Open/Closed
+- Add new features by creating new files under `Application/Features/<FeatureName>/` — never by modifying existing unrelated feature handlers.
+- Extend infrastructure behavior through new implementations of existing interfaces, not by modifying those interfaces.
+- New API surface = new endpoint or controller, not additions to an existing unrelated one.
+
+### L — Liskov Substitution
+- Repository implementations in Infrastructure must fully honour the contracts defined in Domain interfaces — no partial implementations or exceptions thrown for "unsupported" operations.
+- If a repository only needs a subset of operations, define a narrower interface in Domain rather than implementing a broad one partially.
+
+### I — Interface Segregation
+- Repository interfaces in `Domain/Interfaces/` should be focused per aggregate (e.g. `ITicketRepository`, not a single `IRepository<T>` for everything).
+- Application service interfaces in `Application/Common/Interfaces/` should be narrow — one interface per external capability (e.g. `IEmailService`, `IStorageService`).
+- Command handlers and query handlers should not depend on interfaces they don't use.
+
+### D — Dependency Inversion
+- Application depends on domain interfaces, never on Infrastructure implementations.
+- Infrastructure implements those interfaces — it is never referenced by Application or Domain for business logic.
+- Api references Infrastructure only to register implementations in the DI container (`Program.cs`). All business logic is invoked through Application layer abstractions.
 
 ## Key Conventions
 
-- Features go in `src/ServiceDelivery.Application/Features/<FeatureName>/` with Commands and Queries as subfolders.
-- Repository interfaces are defined in `Domain/Interfaces/`, implemented in `Infrastructure/Repositories/`.
-- `appsettings.Local.json` is gitignored — use it for local secrets/overrides.
+- New features → `Application/Features/<FeatureName>/Commands/` and `Application/Features/<FeatureName>/Queries/`
+- Repository interfaces → `Domain/Interfaces/`
+- Repository implementations → `Infrastructure/Repositories/`
+- Application service interfaces → `Application/Common/Interfaces/`
+- External service implementations → `Infrastructure/Services/`
+- Pipeline behaviors (validation, logging, etc.) → `Application/Common/Behaviors/`
+- `appsettings.Local.json` is gitignored — use it for local secrets and connection strings
 
 ## Terraform
 
-Infrastructure is split into reusable modules under `terraform/modules/` and environment-specific configs under `terraform/environments/`. Always target an environment's `terraform.tfvars` when running plan/apply.
+Infrastructure is split into reusable modules under `terraform/modules/` (app-service, database, networking) and environment-specific configs under `terraform/environments/` (dev, staging, prod). Always target an environment's `terraform.tfvars` when running plan or apply.
