@@ -95,7 +95,8 @@ When a rep goes `Offline` mid-job, the associated request returns to `Pending` a
 
 ```
 distance_miles = haversine(rep_lat, rep_lng, requester_lat, requester_lng)
-eta_minutes    = (distance_miles / 60.0) * 60
+eta_hours      = distance_miles / 60.0    // assumed average speed: 60 mph
+eta_minutes    = eta_hours * 60
 ```
 
 ETA is recalculated by the backend on every position update and broadcast to the requester via SignalR. The assumed average speed is **60 mph**.

@@ -201,3 +201,7 @@ Each vehicle carries exactly 6 of the 10 equipment types. The combination is des
 | Name | Email | Role |
 |------|-------|------|
 | Simulator | simulator@system.internal | Simulator |
+
+### Default Passwords
+
+All seeded users share the default password **`Password123!`** for the POC. Use this value for `SimulatorPassword` in `appsettings.Local.json`.
