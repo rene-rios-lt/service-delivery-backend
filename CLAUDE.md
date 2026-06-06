@@ -6,6 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the backend repository for the Service Delivery system. It contains a .NET 10 Web API built with Clean Architecture and Azure infrastructure defined in Terraform.
 
+## System Context
+
+This API powers a fleet dispatch system — "Uber for service reps." When a requester reports a fault on their equipment (identified by a Diagnostic Trouble Code), the system finds the nearest qualified service vehicle carrying the right equipment and dispatches the rep. Dispatchers manage the fleet and handle priority escalations. Real-time updates flow over SignalR.
+
+Three personas consume this API: **Dispatcher** (fleet management, override authority), **ServiceRep** (job offers, state transitions, mark complete), and **Requester** (submit requests, track assigned rep). A **Simulator** service account drives vehicle positions for the POC.
+
+## Required Reading Before Implementing
+
+Read these docs before writing any code in this repo. They are the authoritative specification — do not re-derive business logic from scratch or make assumptions that contradict them.
+
+- [`docs/domain-model.md`](docs/domain-model.md) — all entities, fields, relationships, and complete seed data (DTCs, vehicles, users, DTC coverage distribution)
+- [`docs/business-rules.md`](docs/business-rules.md) — matching algorithm, priority/redirect rules, cooldown, state machines, ETA calculation
+- [`docs/api-design.md`](docs/api-design.md) — REST endpoint groups by role, all 4 SignalR hubs with event payloads
+
+Cross-cutting architecture decisions (why SignalR, why Haversine, why simulated auth) are in the central repo at `docs/adr/`.
+
 ## Commands
 
 ```bash
