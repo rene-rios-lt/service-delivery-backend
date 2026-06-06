@@ -66,19 +66,25 @@ All queries are automatically scoped to the authenticated user's `dealerId`.
 | GET | `/dispatcher/fleet` | Get all reps with state, position, active request | Dispatcher |
 | POST | `/dispatcher/redirect` | Redirect an En Route rep to a different request | Dispatcher |
 
+`POST /dispatcher/redirect` request body:
+```json
+{ "repId": "guid", "toRequestId": "guid" }
+```
+The `fromRequestId` is derived from the rep's current active request — the backend looks it up. Only the rep to redirect and the destination request are required.
+
 ---
 
 ## SignalR Hubs
 
 ### `VehiclePositionHub` — `/hubs/position`
-**Publishers:** Simulator  
+**Publishers:** Backend (receives position updates from Simulator via `POST /vehicles/{id}/position`, then fans out)
 **Subscribers:** Dispatchers (all), Requester (only for their assigned rep)
 
 | Event (server → client) | Payload |
 |--------------------------|---------|
 | `VehiclePositionUpdated` | `{ repId, vehicleId, latitude, longitude, state }` |
 
-The simulator connects and calls a server-side method to push position updates. The backend fans out to subscribed clients and runs business logic (15-mile check, ETA recalculation).
+The simulator pushes positions via REST — it is not a SignalR publisher. The backend receives the REST call, runs business logic (15-mile threshold check, ETA recalculation), then broadcasts to subscribed clients over this hub.
 
 ---
 
@@ -105,7 +111,7 @@ The simulator connects and calls a server-side method to push position updates. 
 |--------------------------|---------|---------|
 | `JobOfferReceived` | `{ offerId, requestId, requesterName, requesterTier, dtcTitle, latitude, longitude, distanceMiles, etaMinutes }` | New offer sent to rep |
 | `JobOfferExpired` | `{ offerId }` | 60-second timeout reached |
-| `RedirectReceived` | `{ newRequestId, requesterName, requesterTier, dtcTitle, latitude, longitude }` | Dispatcher hard-redirected this rep |
+| `RedirectReceived` | `{ newRequestId, requesterName, requesterTier, dtcTitle, latitude, longitude, distanceMiles, etaMinutes }` | Dispatcher hard-redirected this rep |
 
 ---
 
