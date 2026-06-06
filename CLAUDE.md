@@ -63,6 +63,74 @@ Infrastructure.Tests → Infrastructure
 
 Any code that would require violating this graph belongs in a different layer.
 
+## Test-Driven Development
+
+TDD is mandatory in this repo. No production code is written without a failing test first.
+
+### The Cycle
+
+```
+Red   → Write a failing test that describes the behaviour you want
+Green → Write the minimum production code to make it pass
+Refactor → Clean up without breaking the tests
+```
+
+Never write production code speculatively. If there is no failing test, there is no code to write.
+
+### Test Projects and What They Cover
+
+| Project | What to test | Tools |
+|---------|-------------|-------|
+| `Domain.Tests` | Entity invariants, value object equality, domain event creation — pure logic, no mocks | xUnit |
+| `Application.Tests` | Command/query handler behaviour — mock repository and service interfaces | xUnit, Moq |
+| `Infrastructure.Tests` | Repository implementations against a real (in-memory or test container) DB | xUnit, EF Core InMemory |
+| `Architecture.Tests` | Layer dependency rules — Domain/Application/Infrastructure/Api cannot reference outer layers | NetArchTest.Rules |
+| `Api.Tests` | HTTP contracts — status codes, response shapes, error handling | xUnit, WebApplicationFactory |
+
+### Test Naming
+
+Use the `Given_When_Then` convention for test method names:
+
+```csharp
+// Good
+public void GivenANewServiceRequest_WhenTitleIsEmpty_ThenDomainExceptionIsThrown()
+
+// Also acceptable for simpler cases
+public void CreateServiceRequest_WithEmptyTitle_ThrowsDomainException()
+```
+
+### Test Structure — Arrange / Act / Assert
+
+Every test must have clearly separated sections:
+
+```csharp
+[Fact]
+public void GivenAServiceRequest_WhenStatusIsUpdated_ThenDomainEventIsRaised()
+{
+    // Arrange
+    var request = ServiceRequest.Create("Fix printer", RequestPriority.High);
+
+    // Act
+    request.MarkAsInProgress();
+
+    // Assert
+    Assert.Contains(request.DomainEvents, e => e is ServiceRequestStatusChangedEvent);
+}
+```
+
+### Layer-Specific TDD Rules
+
+- **Domain** — Write tests for every invariant and business rule before implementing it. Domain tests require no mocks — entities and value objects are pure C#.
+- **Application** — Write the handler test first using mocked interfaces. The test defines the contract the handler must fulfil.
+- **Infrastructure** — Write tests against the real data store (use EF Core InMemory for unit speed, TestContainers for integration accuracy). Never mock `DbContext`.
+- **Api** — Write the endpoint test with `WebApplicationFactory` before wiring the route. The test defines the HTTP contract.
+
+### What Not to Test
+
+- Framework behaviour (EF Core, ASP.NET routing) — test your code, not the framework
+- Trivial property getters/setters with no logic
+- Private methods — test through the public interface
+
 ## SOLID Principles
 
 All additions and modifications to this repo must follow these principles, mapped directly to the Clean Architecture layers.

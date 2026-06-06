@@ -6,7 +6,9 @@
     <Project Path="src/ServiceDelivery.Infrastructure/ServiceDelivery.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ServiceDelivery.Api.Tests/ServiceDelivery.Api.Tests.csproj" />
     <Project Path="tests/ServiceDelivery.Application.Tests/ServiceDelivery.Application.Tests.csproj" />
+    <Project Path="tests/ServiceDelivery.Architecture.Tests/ServiceDelivery.Architecture.Tests.csproj" />
     <Project Path="tests/ServiceDelivery.Domain.Tests/ServiceDelivery.Domain.Tests.csproj" />
     <Project Path="tests/ServiceDelivery.Infrastructure.Tests/ServiceDelivery.Infrastructure.Tests.csproj" />
   </Folder>
