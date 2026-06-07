@@ -105,15 +105,17 @@ Never write production code speculatively. If there is no failing test, there is
 
 ### Test Naming
 
-Use the `Given_When_Then` convention for test method names:
+Use the `GivenA_When_Then` convention for all test method names:
 
 ```csharp
-// Good
 public void GivenANewServiceRequest_WhenTitleIsEmpty_ThenDomainExceptionIsThrown()
-
-// Also acceptable for simpler cases
-public void CreateServiceRequest_WithEmptyTitle_ThrowsDomainException()
+public void GivenAValidCredential_WhenLoginCalled_ThenJwtIsReturned()
+public void GivenARepOnSite_WhenRedirectAttempted_ThenReturns422()
 ```
+
+- `GivenA` — the starting state or precondition
+- `When` — the action or event under test
+- `Then` — the expected outcome
 
 ### Test Structure — Arrange / Act / Assert
 
