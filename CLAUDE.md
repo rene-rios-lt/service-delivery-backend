@@ -22,6 +22,20 @@ Read these docs before writing any code in this repo. They are the authoritative
 
 Cross-cutting architecture decisions (why SignalR, why Haversine, why simulated auth) are in the central repo at `docs/adr/`.
 
+## Implementing Stories
+
+Stories for this repo (`BE-001` through `BE-025`) are implemented using the Master agent in `service-delivery-central`. Invoke it with the story ID:
+
+```
+/master BE-010
+```
+
+The agent creates a feature branch, runs the full TDD pipeline (evaluate → plan → implement → AI review → PR), and pauses at two human checkpoints. Never implement a story by writing code directly without the agent — TDD discipline and SOLID checks are enforced through that pipeline.
+
+### Audit Files (`.stories/`)
+
+During story execution the agent writes ephemeral working files to `.stories/<STORY-ID>/` in this repo. These files are gitignored and deleted at the start of each new run — they are session-scoped working memory for the pipeline, not source files. Do not create or commit anything under `.stories/`.
+
 ## Commands
 
 ```bash
