@@ -25,4 +25,15 @@ public class RepSessionRepository : IRepSessionRepository
         await _context.RepSessions.AddAsync(session, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(RepSession session, CancellationToken cancellationToken = default)
+    {
+        var tracked = await _context.RepSessions
+            .FirstOrDefaultAsync(s => s.Id == session.Id, cancellationToken);
+
+        if (tracked is not null)
+            tracked.EndedAt = session.EndedAt;
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }
