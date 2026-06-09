@@ -16,6 +16,9 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.Property(v => v.LastLatitude).IsRequired(false);
         builder.Property(v => v.LastLongitude).IsRequired(false);
         builder.Property(v => v.LastPositionUpdatedAt).IsRequired(false);
+        builder.Property(v => v.RowVersion)
+               .IsRowVersion()
+               .HasDefaultValueSql("randomblob(8)");
         builder.HasMany(v => v.Equipment)
                .WithOne(e => e.Vehicle)
                .HasForeignKey(e => e.VehicleId);

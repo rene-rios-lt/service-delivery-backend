@@ -2,7 +2,9 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServiceDelivery.Application.Features.Vehicles.Commands;
 using ServiceDelivery.Application.Features.Vehicles.Queries;
+using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Api.Controllers;
 
@@ -42,5 +44,33 @@ public class VehiclesController : ControllerBase
 
         var result = await _mediator.Send(new GetAvailableVehiclesQuery(dealerId));
         return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/claim")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> ClaimVehicle(Guid id)
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new ClaimVehicleCommand(id, repId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (VehicleAlreadyClaimedException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
+        catch (RepAlreadyHasActiveSessionException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
     }
 }
