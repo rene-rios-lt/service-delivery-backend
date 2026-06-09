@@ -28,6 +28,7 @@ public static class SeedConstants
     public static readonly Guid Vehicle6Id = new("30000000-0000-0000-0000-000000000006");
     public static readonly Guid Vehicle7Id = new("30000000-0000-0000-0000-000000000007");
     public static readonly Guid Vehicle8Id = new("30000000-0000-0000-0000-000000000008");
+    public static readonly Guid Dealer2Vehicle1Id = new("30000000-0000-0000-0000-000000000009");
 
     // Dispatchers
     public static readonly Guid AlexDispatcherId = new("40000000-0000-0000-0000-000000000001");

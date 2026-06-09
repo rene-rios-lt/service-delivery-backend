@@ -25,6 +25,7 @@ builder.Services.AddScoped<DataSeeder>();
 
 // Repository registrations
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 
 // Application service registrations
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
