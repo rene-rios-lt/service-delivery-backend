@@ -1,6 +1,7 @@
 using FluentAssertions;
 using ServiceDelivery.Domain.Entities;
 using ServiceDelivery.Domain.Enums;
+using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Domain.Tests.Entities;
 
@@ -82,5 +83,32 @@ public class UserEntityTests
 
         // Assert
         user.Tier.Should().Be(ServiceTier.Gold);
+    }
+
+    [Fact]
+    public void GivenRequesterRoleAndNoneTier_WhenValidateInvariantsCalled_ThenDomainExceptionIsThrown()
+    {
+        // Arrange
+        var user = new User { Role = UserRole.Requester, Tier = ServiceTier.None };
+
+        // Act
+        var act = () => user.ValidateInvariants();
+
+        // Assert
+        act.Should().Throw<DomainException>()
+            .WithMessage("*Requester*");
+    }
+
+    [Fact]
+    public void GivenDispatcherRoleAndNoneTier_WhenValidateInvariantsCalled_ThenNoExceptionIsThrown()
+    {
+        // Arrange
+        var user = new User { Role = UserRole.Dispatcher, Tier = ServiceTier.None };
+
+        // Act
+        var act = () => user.ValidateInvariants();
+
+        // Assert
+        act.Should().NotThrow();
     }
 }
