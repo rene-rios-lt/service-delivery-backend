@@ -64,7 +64,7 @@ public class ForceReleaseVehicleCommandHandlerTests
         SetupRepSession(repId, session);
         SetupRepState(repId, repState);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -89,7 +89,7 @@ public class ForceReleaseVehicleCommandHandlerTests
         SetupRepSession(repId, session);
         SetupRepState(repId, repState);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -114,7 +114,7 @@ public class ForceReleaseVehicleCommandHandlerTests
         SetupRepSession(repId, session);
         SetupRepState(repId, repState);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -141,7 +141,7 @@ public class ForceReleaseVehicleCommandHandlerTests
         SetupRepSession(repId, session);
         SetupRepState(repId, repState);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -171,7 +171,7 @@ public class ForceReleaseVehicleCommandHandlerTests
             .Callback<RepStateRecord, CancellationToken>((s, _) => capturedState = s)
             .Returns(Task.CompletedTask);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -196,7 +196,7 @@ public class ForceReleaseVehicleCommandHandlerTests
         SetupRepSession(repId, null);
         SetupRepState(repId, repState);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -231,7 +231,7 @@ public class ForceReleaseVehicleCommandHandlerTests
             })
             .Returns(Task.CompletedTask);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
@@ -257,7 +257,7 @@ public class ForceReleaseVehicleCommandHandlerTests
         SetupRepSession(repId, null);
         SetupRepState(repId, null);
 
-        var command = new ForceReleaseVehicleCommand(vehicleId, dispatcherId);
+        var command = new ForceReleaseVehicleCommand(vehicleId);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
