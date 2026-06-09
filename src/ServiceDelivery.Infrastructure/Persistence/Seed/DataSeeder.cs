@@ -59,6 +59,7 @@ public class DataSeeder
             BuildVehicle(SeedConstants.Vehicle6Id, "V-006", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.ExhaustSystemKit, EquipmentType.SuspensionKit,         EquipmentType.PowertrainKit),
             BuildVehicle(SeedConstants.Vehicle7Id, "V-007", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.CoolingSystemKit, EquipmentType.FuelSystemKit,    EquipmentType.SuspensionKit,         EquipmentType.SteeringKit),
             BuildVehicle(SeedConstants.Vehicle8Id, "V-008", EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit,     EquipmentType.FuelSystemKit,    EquipmentType.ExhaustSystemKit, EquipmentType.SuspensionKit,         EquipmentType.SteeringKit),
+            BuildDealer2Vehicle(SeedConstants.Dealer2Vehicle1Id, "D2-001", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit),
         };
 
         await _context.Vehicles.AddRangeAsync(vehicles);
@@ -113,6 +114,18 @@ public class DataSeeder
         {
             Id = id,
             DealerId = SeedConstants.DealerId,
+            Registration = registration,
+            Equipment = equipmentTypes.Select(et => new VehicleEquipment { VehicleId = id, EquipmentType = et }).ToList()
+        };
+        return vehicle;
+    }
+
+    private static Vehicle BuildDealer2Vehicle(Guid id, string registration, params EquipmentType[] equipmentTypes)
+    {
+        var vehicle = new Vehicle
+        {
+            Id = id,
+            DealerId = SeedConstants.Dealer2Id,
             Registration = registration,
             Equipment = equipmentTypes.Select(et => new VehicleEquipment { VehicleId = id, EquipmentType = et }).ToList()
         };

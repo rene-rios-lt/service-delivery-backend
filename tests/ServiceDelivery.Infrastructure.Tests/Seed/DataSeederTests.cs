@@ -58,7 +58,7 @@ public class DataSeederTests
 
     // AC-2
     [Fact]
-    public async Task GivenEmptyDatabase_WhenSeeded_ThenEightVehiclesExist()
+    public async Task GivenEmptyDatabase_WhenSeeded_ThenNineVehiclesExist()
     {
         // Arrange
         await using var context = CreateFreshContext();
@@ -68,12 +68,12 @@ public class DataSeederTests
         await seeder.SeedAsync();
 
         // Assert
-        context.Vehicles.Count().Should().Be(8);
+        context.Vehicles.Count().Should().Be(9);
     }
 
     // AC-2b
     [Fact]
-    public async Task GivenEmptyDatabase_WhenSeeded_ThenEachVehicleHasSixEquipmentTypes()
+    public async Task GivenEmptyDatabase_WhenSeeded_ThenEachDealer1VehicleHasSixEquipmentTypes()
     {
         // Arrange
         await using var context = CreateFreshContext();
@@ -83,8 +83,11 @@ public class DataSeederTests
         await seeder.SeedAsync();
 
         // Assert
-        var vehicles = context.Vehicles.Include(v => v.Equipment).ToList();
-        vehicles.Should().AllSatisfy(v => v.Equipment.Count.Should().Be(6));
+        var dealer1Vehicles = context.Vehicles
+            .Include(v => v.Equipment)
+            .Where(v => v.DealerId == SeedConstants.DealerId)
+            .ToList();
+        dealer1Vehicles.Should().AllSatisfy(v => v.Equipment.Count.Should().Be(6));
     }
 
     // AC-2c: Equipment coverage per the authoritative vehicle table in domain-model.md.
