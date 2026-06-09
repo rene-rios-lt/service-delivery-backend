@@ -33,4 +33,17 @@ public class VehicleRepository : IVehicleRepository
             .Where(v => v.DealerId == dealerId && v.ClaimedByRepId == null)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Vehicle?> GetByIdAsync(Guid vehicleId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .Include(v => v.Equipment)
+            .FirstOrDefaultAsync(v => v.Id == vehicleId, cancellationToken);
+    }
+
+    public async Task UpdateAsync(Vehicle vehicle, CancellationToken cancellationToken = default)
+    {
+        _context.Vehicles.Update(vehicle);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }
