@@ -23,4 +23,14 @@ public class VehicleRepository : IVehicleRepository
             .Where(v => v.DealerId == dealerId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Vehicle>> GetUnclaimedByDealerIdAsync(
+        Guid dealerId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .Include(v => v.Equipment)
+            .Where(v => v.DealerId == dealerId && v.ClaimedByRepId == null)
+            .ToListAsync(cancellationToken);
+    }
 }
