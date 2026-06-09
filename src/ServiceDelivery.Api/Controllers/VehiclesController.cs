@@ -74,6 +74,21 @@ public class VehiclesController : ControllerBase
         }
     }
 
+    [HttpPost("{id:guid}/force-release")]
+    [Authorize(Roles = "Dispatcher")]
+    public async Task<IActionResult> ForceReleaseVehicle(Guid id)
+    {
+        try
+        {
+            var result = await _mediator.Send(new ForceReleaseVehicleCommand(id));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
     [HttpPost("{id:guid}/release")]
     [Authorize(Roles = "ServiceRep")]
     public async Task<IActionResult> ReleaseVehicle(Guid id)
