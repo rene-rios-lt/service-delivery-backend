@@ -73,4 +73,32 @@ public class VehiclesController : ControllerBase
             return Conflict(new { error = ex.Message });
         }
     }
+
+    [HttpPost("{id:guid}/release")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> ReleaseVehicle(Guid id)
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new ReleaseVehicleCommand(id, repId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (VehicleNotClaimedByRepException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (VehicleReleaseBlockedByActiveJobException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }
