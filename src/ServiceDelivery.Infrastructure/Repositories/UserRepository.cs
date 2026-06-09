@@ -16,4 +16,7 @@ public class UserRepository : IUserRepository
 
     public Task<User?> FindByEmailAsync(string email, CancellationToken cancellationToken = default)
         => _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+
+    public Task<User?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 }
