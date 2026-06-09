@@ -8,6 +8,8 @@ using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Api.Controllers;
 
+public record UpdateVehiclePositionRequest(double Latitude, double Longitude, DateTime Timestamp);
+
 [ApiController]
 [Route("vehicles")]
 [Authorize]
@@ -114,6 +116,27 @@ public class VehiclesController : ControllerBase
         catch (VehicleReleaseBlockedByActiveJobException ex)
         {
             return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:guid}/position")]
+    [Authorize(Roles = "Simulator")]
+    public async Task<IActionResult> UpdateVehiclePosition(Guid id, [FromBody] UpdateVehiclePositionRequest body)
+    {
+        var simulatorUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(simulatorUserIdClaim, out var simulatorUserId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new UpdateVehiclePositionCommand(
+                id, simulatorUserId, body.Latitude, body.Longitude, body.Timestamp));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
         }
     }
 }
