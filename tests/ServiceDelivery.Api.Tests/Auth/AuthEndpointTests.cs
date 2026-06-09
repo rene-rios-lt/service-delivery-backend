@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -15,11 +14,11 @@ using ServiceDelivery.Infrastructure.Persistence.Seed;
 
 namespace ServiceDelivery.Api.Tests.Auth;
 
-public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CustomWebApplicationFactory _factory;
 
-    public AuthEndpointTests(WebApplicationFactory<Program> factory)
+    public AuthEndpointTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }
