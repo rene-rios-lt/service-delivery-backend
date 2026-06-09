@@ -74,8 +74,9 @@ public class DataSeeder
         var users = new[]
         {
             // Dispatchers
-            new User { Id = SeedConstants.AlexDispatcherId,   Name = "Alex Dispatcher",   Email = "alex@dealer.com",             PasswordHash = passwordHash, Role = UserRole.Dispatcher, Tier = ServiceTier.None, DealerId = SeedConstants.DealerId },
-            new User { Id = SeedConstants.JordanDispatcherId, Name = "Jordan Dispatcher", Email = "jordan@dealer.com",           PasswordHash = passwordHash, Role = UserRole.Dispatcher, Tier = ServiceTier.None, DealerId = SeedConstants.DealerId },
+            new User { Id = SeedConstants.AlexDispatcherId,      Name = "Alex Dispatcher",    Email = "alex@dealer.com",              PasswordHash = passwordHash, Role = UserRole.Dispatcher, Tier = ServiceTier.None, DealerId = SeedConstants.DealerId },
+            new User { Id = SeedConstants.JordanDispatcherId,    Name = "Jordan Dispatcher",  Email = "jordan@dealer.com",            PasswordHash = passwordHash, Role = UserRole.Dispatcher, Tier = ServiceTier.None, DealerId = SeedConstants.DealerId },
+            new User { Id = SeedConstants.Dealer2DispatcherId,   Name = "Dealer2 Dispatcher", Email = "dispatcher@dealer2.com",       PasswordHash = passwordHash, Role = UserRole.Dispatcher, Tier = ServiceTier.None, DealerId = SeedConstants.Dealer2Id },
 
             // Service Reps
             new User { Id = SeedConstants.Rep1Id, Name = "Rep One",   Email = "rep1@dealer.com", PasswordHash = passwordHash, Role = UserRole.ServiceRep, Tier = ServiceTier.None, DealerId = SeedConstants.DealerId },

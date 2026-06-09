@@ -3,6 +3,7 @@ namespace ServiceDelivery.Infrastructure.Persistence.Seed;
 public static class SeedConstants
 {
     public static readonly Guid DealerId = new("10000000-0000-0000-0000-000000000001");
+    public static readonly Guid Dealer2Id = new("10000000-0000-0000-0000-000000000002");
 
     public static readonly string DefaultPassword = "Password123!";
 
@@ -31,6 +32,7 @@ public static class SeedConstants
     // Dispatchers
     public static readonly Guid AlexDispatcherId = new("40000000-0000-0000-0000-000000000001");
     public static readonly Guid JordanDispatcherId = new("40000000-0000-0000-0000-000000000002");
+    public static readonly Guid Dealer2DispatcherId = new("40000000-0000-0000-0000-000000000003");
 
     // ServiceReps
     public static readonly Guid Rep1Id = new("50000000-0000-0000-0000-000000000001");

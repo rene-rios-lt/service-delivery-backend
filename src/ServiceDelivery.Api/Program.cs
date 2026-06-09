@@ -2,6 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using ServiceDelivery.Api.Hubs;
+using ServiceDelivery.Api.Services;
 using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Application.Features.Auth.Commands;
 using ServiceDelivery.Domain.Interfaces;
@@ -14,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ServiceDeliveryDb"));
@@ -26,6 +29,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Application service registrations
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+// Hub service registrations
+builder.Services.AddScoped<IVehiclePositionHubService, VehiclePositionHubService>();
+builder.Services.AddScoped<IDispatchHubService, DispatchHubService>();
+builder.Services.AddScoped<IRepHubService, RepHubService>();
+builder.Services.AddScoped<IRequesterHubService, RequesterHubService>();
 
 // MediatR — scans the Application assembly for all handlers
 builder.Services.AddMediatR(cfg =>
@@ -49,6 +58,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    context.Token = accessToken;
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -64,6 +85,11 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapHub<VehiclePositionHub>("/hubs/position");
+app.MapHub<DispatchHub>("/hubs/dispatch");
+app.MapHub<RepHub>("/hubs/rep");
+app.MapHub<RequesterHub>("/hubs/requester");
 
 using (var scope = app.Services.CreateScope())
 {

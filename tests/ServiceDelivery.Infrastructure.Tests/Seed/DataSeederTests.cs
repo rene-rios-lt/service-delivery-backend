@@ -140,7 +140,7 @@ public class DataSeederTests
 
     // AC-3
     [Fact]
-    public async Task GivenEmptyDatabase_WhenSeeded_ThenTwoDispatchersExist()
+    public async Task GivenEmptyDatabase_WhenSeeded_ThenThreeDispatchersExist()
     {
         // Arrange
         await using var context = CreateFreshContext();
@@ -150,7 +150,7 @@ public class DataSeederTests
         await seeder.SeedAsync();
 
         // Assert
-        context.Users.Count(u => u.Role == UserRole.Dispatcher).Should().Be(2);
+        context.Users.Count(u => u.Role == UserRole.Dispatcher).Should().Be(3);
     }
 
     // AC-4
