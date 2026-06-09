@@ -7,4 +7,5 @@ public interface IRepHubService
     Task SendJobOfferReceivedAsync(string repUserGroup, JobOfferReceivedPayload payload, CancellationToken ct = default);
     Task SendJobOfferExpiredAsync(string repUserGroup, JobOfferExpiredPayload payload, CancellationToken ct = default);
     Task SendRedirectReceivedAsync(string repUserGroup, RedirectReceivedPayload payload, CancellationToken ct = default);
+    Task SendVehicleForceReleasedAsync(string repUserGroup, VehicleForceReleasedPayload payload, CancellationToken ct = default);
 }

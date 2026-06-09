@@ -22,4 +22,7 @@ public class RepHubService : IRepHubService
 
     public Task SendRedirectReceivedAsync(string repUserGroup, RedirectReceivedPayload payload, CancellationToken ct = default)
         => _hubContext.Clients.Group(repUserGroup).SendAsync("RedirectReceived", payload, ct);
+
+    public Task SendVehicleForceReleasedAsync(string repUserGroup, VehicleForceReleasedPayload payload, CancellationToken ct = default)
+        => _hubContext.Clients.Group(repUserGroup).SendAsync("VehicleForceReleased", payload, ct);
 }
