@@ -22,6 +22,23 @@ public class ServiceRequestsController : ControllerBase
         _mediator = mediator;
     }
 
+    [HttpGet("my-active")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> GetMyActiveServiceRequest()
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetMyActiveServiceRequestQuery(repId));
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
     [HttpGet]
     [Authorize(Roles = "Dispatcher")]
     public async Task<IActionResult> GetActiveServiceRequests()
