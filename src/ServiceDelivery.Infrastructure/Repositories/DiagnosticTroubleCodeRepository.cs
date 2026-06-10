@@ -22,4 +22,12 @@ public class DiagnosticTroubleCodeRepository : IDiagnosticTroubleCodeRepository
             .Where(d => d.DealerId == dealerId)
             .ToListAsync(cancellationToken);
     }
+
+    public Task<DiagnosticTroubleCode?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.DiagnosticTroubleCodes
+            .FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
+    }
 }
