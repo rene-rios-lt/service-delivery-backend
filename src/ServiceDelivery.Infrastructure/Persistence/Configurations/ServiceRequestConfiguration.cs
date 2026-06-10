@@ -11,6 +11,7 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
         builder.ToTable("ServiceRequests");
         builder.HasKey(sr => sr.Id);
         builder.Property(sr => sr.Status).HasConversion<string>();
+        builder.Property(sr => sr.Tier).HasConversion<string>();
         builder.Property(sr => sr.AssignedRepId).IsRequired(false);
     }
 }

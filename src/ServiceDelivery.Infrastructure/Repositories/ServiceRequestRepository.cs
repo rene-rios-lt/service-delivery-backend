@@ -25,4 +25,10 @@ public class ServiceRequestRepository : IServiceRequestRepository
                 r => r.AssignedRepId == repId
                      && (r.Status == ServiceRequestStatus.Assigned || r.Status == ServiceRequestStatus.InProgress),
                 cancellationToken);
+
+    public async Task AddAsync(ServiceRequest request, CancellationToken cancellationToken = default)
+    {
+        await _context.ServiceRequests.AddAsync(request, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

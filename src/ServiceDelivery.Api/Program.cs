@@ -34,6 +34,7 @@ builder.Services.AddScoped<IDiagnosticTroubleCodeRepository, DiagnosticTroubleCo
 // Application service registrations
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IMatchingService, NoOpMatchingService>();
 
 // Hub service registrations
 builder.Services.AddScoped<IVehiclePositionHubService, VehiclePositionHubService>();
