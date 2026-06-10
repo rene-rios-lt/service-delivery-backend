@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceDelivery.Application.Features.ServiceRequests.Commands;
+using ServiceDelivery.Application.Features.ServiceRequests.Queries;
 using ServiceDelivery.Domain.Enums;
 
 namespace ServiceDelivery.Api.Controllers;
@@ -19,6 +20,20 @@ public class ServiceRequestsController : ControllerBase
     public ServiceRequestsController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Dispatcher")]
+    public async Task<IActionResult> GetActiveServiceRequests()
+    {
+        var dealerIdClaim = User.FindFirstValue("dealerId");
+
+        if (!Guid.TryParse(dealerIdClaim, out var dealerId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetActiveServiceRequestsQuery(dealerId));
+
+        return Ok(result);
     }
 
     [HttpPost]
