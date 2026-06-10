@@ -29,6 +29,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IRepSessionRepository, RepSessionRepository>();
 builder.Services.AddScoped<IRepStateRepository, RepStateRepository>();
 builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+builder.Services.AddScoped<IDiagnosticTroubleCodeRepository, DiagnosticTroubleCodeRepository>();
 
 // Application service registrations
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
