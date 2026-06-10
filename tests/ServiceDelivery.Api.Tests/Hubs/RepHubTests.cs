@@ -21,6 +21,7 @@ public class RepHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/rep", token);
         connection.On<JobOfferReceivedPayload>("JobOfferReceived", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var offerId = Guid.NewGuid();
         var requestId = Guid.NewGuid();
@@ -53,6 +54,7 @@ public class RepHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/rep", token);
         connection.On<JobOfferExpiredPayload>("JobOfferExpired", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var offerId = Guid.NewGuid();
         var payload = new JobOfferExpiredPayload(offerId);
@@ -81,6 +83,7 @@ public class RepHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/rep", token);
         connection.On<RedirectReceivedPayload>("RedirectReceived", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var newRequestId = Guid.NewGuid();
         var payload = new RedirectReceivedPayload(newRequestId, "Silver User 1", "Silver", "Electrical system fault", 34.0522, -118.2437, 5.2, 18.0);
@@ -111,6 +114,7 @@ public class RepHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/rep", token);
         connection.On<JobOfferReceivedPayload>("JobOfferReceived", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var offerId = Guid.NewGuid();
         var requestId = Guid.NewGuid();
