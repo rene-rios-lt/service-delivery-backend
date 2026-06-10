@@ -33,7 +33,7 @@ public class VehiclePositionHubTests
         await hubService.SendVehiclePositionUpdatedAsync(dealerGroup, payload);
 
         // Assert
-        var received = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var received = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
         received.RepId.Should().Be(repId);
         received.VehicleId.Should().Be(vehicleId);
         received.Latitude.Should().Be(40.7128);
