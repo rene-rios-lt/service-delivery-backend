@@ -6,4 +6,5 @@ public interface IServiceRequestRepository
 {
     Task<ServiceRequest?> GetByIdAsync(Guid requestId, CancellationToken cancellationToken = default);
     Task<ServiceRequest?> GetActiveByRepIdAsync(Guid repId, CancellationToken cancellationToken = default);
+    Task AddAsync(ServiceRequest request, CancellationToken cancellationToken = default);
 }

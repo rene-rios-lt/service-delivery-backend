@@ -7,6 +7,7 @@ using ServiceDelivery.Infrastructure.Persistence.Seed;
 
 namespace ServiceDelivery.Api.Tests.Hubs;
 
+[Collection("Hub Tests")]
 public class RequesterHubTests
 {
     [Fact]

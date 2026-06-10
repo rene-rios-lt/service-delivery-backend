@@ -11,6 +11,7 @@ public class ServiceRequest
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public ServiceRequestStatus Status { get; set; } = ServiceRequestStatus.Pending;
+    public ServiceTier Tier { get; set; }
     public Guid? AssignedRepId { get; set; }
     public DateTime CreatedAt { get; set; }
 }
