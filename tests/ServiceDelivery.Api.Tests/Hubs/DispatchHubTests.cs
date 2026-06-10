@@ -21,6 +21,7 @@ public class DispatchHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/dispatch", token);
         connection.On<ServiceRequestPendingPayload>("ServiceRequestPending", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var requestId = Guid.NewGuid();
         var payload = new ServiceRequestPendingPayload(requestId, "Gold", "Hydraulic system fault", "123 Main St");
@@ -51,6 +52,7 @@ public class DispatchHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/dispatch", token);
         connection.On<ServiceRequestAssignedPayload>("ServiceRequestAssigned", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var requestId = Guid.NewGuid();
         var repId = SeedConstants.Rep1Id;
@@ -83,6 +85,7 @@ public class DispatchHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/dispatch", token);
         connection.On<ServiceRequestCompletedPayload>("ServiceRequestCompleted", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var requestId = Guid.NewGuid();
         var payload = new ServiceRequestCompletedPayload(requestId);
@@ -111,6 +114,7 @@ public class DispatchHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/dispatch", token);
         connection.On<RepStateChangedPayload>("RepStateChanged", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var repId = SeedConstants.Rep1Id;
         var payload = new RepStateChangedPayload(repId, "Available", "EnRoute");
@@ -141,6 +145,7 @@ public class DispatchHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/dispatch", token);
         connection.On<RepOfflineMidJobPayload>("RepOfflineMidJob", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var repId = SeedConstants.Rep1Id;
         var requestId = Guid.NewGuid();
@@ -171,6 +176,7 @@ public class DispatchHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/dispatch", token);
         connection.On<FleetPositionUpdatePayload>("FleetPositionUpdate", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var repId = SeedConstants.Rep2Id;
         var payload = new FleetPositionUpdatePayload(repId, 34.0522, -118.2437, "Available");

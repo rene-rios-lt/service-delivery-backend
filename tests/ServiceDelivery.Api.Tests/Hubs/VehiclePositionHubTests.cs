@@ -21,6 +21,7 @@ public class VehiclePositionHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/position", token);
         connection.On<VehiclePositionUpdatedPayload>("VehiclePositionUpdated", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var repId = SeedConstants.Rep1Id;
         var vehicleId = SeedConstants.Vehicle1Id;
@@ -33,7 +34,7 @@ public class VehiclePositionHubTests
         await hubService.SendVehiclePositionUpdatedAsync(dealerGroup, payload);
 
         // Assert
-        var received = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var received = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
         received.RepId.Should().Be(repId);
         received.VehicleId.Should().Be(vehicleId);
         received.Latitude.Should().Be(40.7128);

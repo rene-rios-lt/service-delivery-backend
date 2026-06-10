@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace ServiceDelivery.Api.Hubs;
 
 [Authorize(Roles = "Dispatcher")]
-public class VehiclePositionHub : Hub
+public class VehiclePositionHub : ServiceDeliveryHubBase
 {
     public override async Task OnConnectedAsync()
     {

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace ServiceDelivery.Api.Hubs;
 
 [Authorize(Roles = "ServiceRep,Simulator")]
-public class RepHub : Hub
+public class RepHub : ServiceDeliveryHubBase
 {
     public override async Task OnConnectedAsync()
     {

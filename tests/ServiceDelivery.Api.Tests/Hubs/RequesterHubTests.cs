@@ -21,6 +21,7 @@ public class RequesterHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/requester", token);
         connection.On<RepAssignedPayload>("RepAssigned", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var repId = SeedConstants.Rep1Id;
         var payload = new RepAssignedPayload(repId, "Rep One", 12.5, 40.7128, -74.0060);
@@ -51,6 +52,7 @@ public class RequesterHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/requester", token);
         connection.On<RepPositionUpdatedPayload>("RepPositionUpdated", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var payload = new RepPositionUpdatedPayload(40.7580, -73.9855, 8.0, "EnRoute");
         var requesterGroup = $"requester:{SeedConstants.Bronze1Id}";
@@ -81,6 +83,7 @@ public class RequesterHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/requester", token);
         connection.On<RepRedirectedPayload>("RepRedirected", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var payload = new RepRedirectedPayload("Rep One", "Rep Two", 20.0);
         var requesterGroup = $"requester:{SeedConstants.Bronze1Id}";
@@ -110,6 +113,7 @@ public class RequesterHubTests
         var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/requester", token);
         connection.On<ServiceCompletedPayload>("ServiceCompleted", tcs.SetResult);
         await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
 
         var payload = new ServiceCompletedPayload();
         var requesterGroup = $"requester:{SeedConstants.Bronze1Id}";

@@ -46,7 +46,9 @@ public class HubAuthTests
         dealer2Connection.On<ServiceRequestPendingPayload>("ServiceRequestPending", dealer2Tcs.SetResult);
 
         await dealer1Connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(dealer1Connection);
         await dealer2Connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(dealer2Connection);
 
         var requestId = Guid.NewGuid();
         var payload = new ServiceRequestPendingPayload(requestId, "Bronze", "Braking system fault", "456 Elm St");
@@ -85,7 +87,9 @@ public class HubAuthTests
         rep2Connection.On<JobOfferReceivedPayload>("JobOfferReceived", rep2Tcs.SetResult);
 
         await rep1Connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(rep1Connection);
         await rep2Connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(rep2Connection);
 
         var offerId = Guid.NewGuid();
         var requestId = Guid.NewGuid();
@@ -125,7 +129,9 @@ public class HubAuthTests
         req2Connection.On<RepAssignedPayload>("RepAssigned", req2Tcs.SetResult);
 
         await req1Connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(req1Connection);
         await req2Connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(req2Connection);
 
         var repId = SeedConstants.Rep3Id;
         var payload = new RepAssignedPayload(repId, "Rep Three", 10.0, 40.7128, -74.0060);
