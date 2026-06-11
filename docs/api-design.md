@@ -44,7 +44,7 @@ All queries are automatically scoped to the authenticated user's `dealerId`.
 |--------|------|-------------|-------|
 | POST | `/service-requests` | Submit a new service request | Requester |
 | GET | `/service-requests` | List active requests | Dispatcher |
-| GET | `/service-requests/{id}` | Get request details | Dispatcher, Requester (own) |
+| GET | `/service-requests/{id}` | Get request details (own-only: Dispatcher → any in their dealer, Requester → own, ServiceRep → assigned; out-of-scope/not-found → 404). Response: `requestId`, `requesterName`, `tier`, `dtcTitle`, nested `requesterLocation { lat, lng }`, `status`, `assignedRep` (null when unassigned), `createdAt`, `offerHistory[]` (ascending by `offeredAt`). | Dispatcher (any in dealer), Requester (own), ServiceRep (assigned) |
 | GET | `/service-requests/my-active` | Get requester's current active request | Requester |
 
 ### Job Offers

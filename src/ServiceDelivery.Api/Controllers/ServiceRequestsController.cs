@@ -39,6 +39,34 @@ public class ServiceRequestsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetServiceRequestDetail(Guid id)
+    {
+        var dealerIdClaim = User.FindFirstValue("dealerId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(dealerIdClaim, out var dealerId))
+            return Unauthorized();
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var role = User.IsInRole("Dispatcher") ? UserRole.Dispatcher
+            : User.IsInRole("ServiceRep") ? UserRole.ServiceRep
+            : User.IsInRole("Requester") ? UserRole.Requester
+            : (UserRole?)null;
+
+        if (role is null)
+            return NotFound();
+
+        var result = await _mediator.Send(new GetServiceRequestDetailQuery(id, dealerId, userId, role.Value));
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
     [HttpGet]
     [Authorize(Roles = "Dispatcher")]
     public async Task<IActionResult> GetActiveServiceRequests()
