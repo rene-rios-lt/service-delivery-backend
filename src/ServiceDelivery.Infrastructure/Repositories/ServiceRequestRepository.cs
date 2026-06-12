@@ -33,6 +33,11 @@ public class ServiceRequestRepository : IServiceRequestRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ServiceRequest>> GetPendingByDealerAsync(Guid dealerId, CancellationToken cancellationToken = default)
+        => await _context.ServiceRequests
+            .Where(r => r.DealerId == dealerId && r.Status == ServiceRequestStatus.Pending)
+            .ToListAsync(cancellationToken);
+
     public async Task<ServiceRequestDetail?> GetDetailByIdAsync(Guid requestId, Guid dealerId, CancellationToken cancellationToken = default)
     {
         var projection = await _context.ServiceRequests
