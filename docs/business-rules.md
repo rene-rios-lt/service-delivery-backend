@@ -6,7 +6,7 @@ When a service request is submitted (or re-queued after a decline/redirect), the
 
 1. **Filter by dealer** — only consider reps belonging to the same dealer as the request
 2. **Filter by equipment** — only consider reps whose current vehicle carries the equipment type required by the request's DTC
-3. **Filter by state** — only consider reps in `Available` or `EnRoute` state
+3. **Filter by state** — only consider reps in `Available` state. Automatic matching offers jobs only to free reps; reassigning an `EnRoute` rep to a higher-priority request is a dispatcher-only action via redirect (see Priority and Redirect Rules below), which enforces the tier, cooldown, and proximity protections
 4. **Exclude skipped reps** — exclude any rep who previously declined or had an expired offer for this specific request
 5. **Sort by distance** — calculate Haversine distance from each rep's last known position to the requester's location; sort ascending
 6. **Tiebreaker** — if two reps are equidistant, the rep who has been in `Available` state longest wins
