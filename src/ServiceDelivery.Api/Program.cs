@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using ServiceDelivery.Api.Hubs;
 using ServiceDelivery.Api.Services;
 using ServiceDelivery.Application.Common.Interfaces;
+using ServiceDelivery.Application.Common.Services;
 using ServiceDelivery.Application.Features.Auth.Commands;
 using ServiceDelivery.Domain.Interfaces;
 using ServiceDelivery.Infrastructure.Persistence;
@@ -30,11 +31,12 @@ builder.Services.AddScoped<IRepSessionRepository, RepSessionRepository>();
 builder.Services.AddScoped<IRepStateRepository, RepStateRepository>();
 builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
 builder.Services.AddScoped<IDiagnosticTroubleCodeRepository, DiagnosticTroubleCodeRepository>();
+builder.Services.AddScoped<IJobOfferRepository, JobOfferRepository>();
 
 // Application service registrations
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<IMatchingService, NoOpMatchingService>();
+builder.Services.AddScoped<IMatchingService, MatchingService>();
 
 // Hub service registrations
 builder.Services.AddScoped<IVehiclePositionHubService, VehiclePositionHubService>();
