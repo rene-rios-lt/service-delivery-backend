@@ -15,6 +15,8 @@ The top result receives a job offer. If they decline or expire, repeat from step
 
 If no candidates remain, the request stays in `Pending` and the dispatcher is notified.
 
+These candidate rules are **unchanged** by Human Takeover. Simulator-operated reps are real `Available` reps backed by real rep sessions, so the simulator and a human are indistinguishable to the matcher: candidates are always reps with an active `RepSession`, in `Available` state, with an equipment match, in the same dealer, sorted by Haversine distance. A `human-controlled` rep is matched on exactly the same terms as a simulator-operated one.
+
 ---
 
 ## Priority and Redirect Rules
@@ -50,6 +52,27 @@ The 15-mile threshold is calculated by the backend on every position update usin
 3. Displaced rep's cooldown timer starts
 4. System runs matching algorithm for the displaced request
 5. Once a new rep accepts the displaced request, the displaced requester is notified: *"Our apologies, we needed to redirect [rep name]. [new rep name] is heading your way."* with updated ETA
+
+Redirect applies **uniformly** to simulator-operated and human-controlled reps. The same `EnRoute`-only, tier, cooldown, and proximity protections apply regardless of who is operating the truck. On redirect, the simulator re-navigates the truck to the new destination; for a human-controlled rep, the redirect surfaces on the human's device (`RedirectReceived`), and the simulator drives the truck to follow it.
+
+---
+
+## Human Takeover Rules
+
+A human operator can log in as one of the seeded rep accounts (`rep1`…`rep8`) and assume control of a vehicle the simulator is currently operating (via `POST /vehicles/{id}/take-over`).
+
+### Takeover Eligibility
+Takeover is allowed only when **both** of the following hold:
+- The rep is **idle** — `Available` with no active job (not `EnRoute`, `Within15Miles`, or `OnSite`)
+- The target vehicle is **idle** — its claiming rep has no active job (not `EnRoute`, `Within15Miles`, or `OnSite`)
+
+On takeover the backend releases the prior simulator claim, ends the prior session, claims the vehicle for the human, opens a new session, and marks the rep `human-controlled`. The human's device then sends a ~15-second heartbeat.
+
+### Sticky — No Re-assume
+When a human-controlled rep goes off-duty — explicit logout/release, or heartbeat timeout — the rep transitions to `Offline`, the vehicle is parked (claim released), and `human-controlled` is cleared. The simulator does **not** re-assume that rep or vehicle for the remainder of the run; both stay out of the automated fleet until the run restarts.
+
+### Abandoned Job Re-match
+If a human-controlled rep goes off-duty while mid-job, the abandoned request returns to `Pending` and is **re-matched** to another available rep using the standard matching algorithm (this is the existing `Offline` mid-job behavior, applied to human-controlled reps as well).
 
 ---
 
