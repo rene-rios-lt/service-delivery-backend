@@ -2,7 +2,9 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ServiceDelivery.Application.Features.JobOffers.Commands;
 using ServiceDelivery.Application.Features.JobOffers.Queries;
+using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Api.Controllers;
 
@@ -33,5 +35,29 @@ public class JobOffersController : ControllerBase
             return NotFound();
 
         return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/accept")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> Accept(Guid id)
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new AcceptJobOfferCommand(id, repId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidJobOfferStateException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
     }
 }

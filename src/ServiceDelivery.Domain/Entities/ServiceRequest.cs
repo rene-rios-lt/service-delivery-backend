@@ -1,4 +1,5 @@
 using ServiceDelivery.Domain.Enums;
+using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Domain.Entities;
 
@@ -14,4 +15,14 @@ public class ServiceRequest
     public ServiceTier Tier { get; set; }
     public Guid? AssignedRepId { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    public void AssignTo(Guid repId)
+    {
+        if (Status != ServiceRequestStatus.Pending)
+            throw new InvalidJobOfferStateException(
+                $"Service request {Id} cannot be assigned from state {Status}; only a Pending request can be assigned.");
+
+        Status = ServiceRequestStatus.Assigned;
+        AssignedRepId = repId;
+    }
 }

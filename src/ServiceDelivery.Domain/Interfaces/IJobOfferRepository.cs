@@ -11,4 +11,8 @@ public interface IJobOfferRepository
         CancellationToken cancellationToken = default);
 
     Task<JobOffer?> GetPendingByRepIdAsync(Guid repId, CancellationToken cancellationToken = default);
+
+    Task<JobOffer?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default);
 }
