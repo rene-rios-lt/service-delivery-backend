@@ -20,4 +20,13 @@ public class JobOffer
 
         Status = JobOfferStatus.Accepted;
     }
+
+    public void Decline()
+    {
+        if (Status != JobOfferStatus.Pending)
+            throw new InvalidJobOfferStateException(
+                $"Job offer {Id} cannot be declined from state {Status}; only a Pending offer can be declined.");
+
+        Status = JobOfferStatus.Declined;
+    }
 }
