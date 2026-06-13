@@ -10,7 +10,7 @@ This is the backend repository for the Service Delivery system. It contains a .N
 
 This API powers a fleet dispatch system — "Uber for service reps." When a requester reports a fault on their equipment (identified by a Diagnostic Trouble Code), the system finds the nearest qualified service vehicle carrying the right equipment and dispatches the rep. Dispatchers manage the fleet and handle priority escalations. Real-time updates flow over SignalR.
 
-Three personas consume this API: **Dispatcher** (fleet management, override authority), **ServiceRep** (job offers, state transitions, mark complete), and **Requester** (submit requests, track assigned rep). A **Simulator** service account drives vehicle positions for the POC.
+Three personas consume this API: **Dispatcher** (fleet management, override authority), **ServiceRep** (job offers, state transitions, mark complete), and **Requester** (submit requests, track assigned rep). For the POC, the simulator drives all vehicle positions via a `Simulator`-role account and operates the seeded `rep1…rep8` accounts to make job decisions on their behalf — but a human can log in as any idle rep and take it over from a device (see central ADR-0009, "Human Takeover").
 
 ## Required Reading Before Implementing
 

@@ -57,7 +57,7 @@ vehicleId   : Guid      (FK → Vehicle)
 startedAt   : DateTime
 endedAt     : DateTime? (null = session active)
 ```
-Tracks which rep claimed which vehicle for the day. One active session per rep at a time.
+Tracks which rep claimed which vehicle for the day. One active session per rep at a time. A take-over ends the prior session on the vehicle and opens a new one for the human operator (see `RepState.humanControlled`); the session itself records the claim regardless of whether the rep is simulator-operated or human-controlled.
 
 ### RepState
 ```
@@ -65,8 +65,11 @@ repId           : Guid         (FK → User, role = ServiceRep)
 state           : Offline | Available | EnRoute | Within15Miles | OnSite
 activeRequestId : Guid?        (null when Offline or Available)
 lastRedirectedAt: DateTime?    (used for 5-minute cooldown calculation)
+humanControlled : bool         (true when a human has taken over this rep/vehicle; false when simulator-operated)
+lastHeartbeatAt : DateTime?    (last liveness ping from a human-controlled device; null when simulator-operated)
 updatedAt       : DateTime
 ```
+`humanControlled` is set on a successful take-over and cleared when the rep goes off-duty (logout/release or heartbeat timeout). `lastHeartbeatAt` is refreshed on every `POST /rep/heartbeat`; a stale value (no ping within the timeout) drives the rep `Offline`.
 
 ### JobOffer
 ```
@@ -183,6 +186,8 @@ Each vehicle carries exactly 6 of the 10 equipment types. The combination is des
 | Rep Seven | rep7@dealer.com | ServiceRep |
 | Rep Eight | rep8@dealer.com | ServiceRep |
 
+Each `rep1`…`rep8` account is operated **either by the simulator or by a human** — never both at once. By default the simulator logs in as each rep account, claims a vehicle, connects `RepHub`, and auto-responds to offers. A human can take over any one of these accounts on an idle rep/idle vehicle via `POST /vehicles/{id}/take-over`, at which point that rep is marked `human-controlled` and the simulator stops operating it (see business-rules.md, Human Takeover Rules).
+
 **Requesters (10 — 6 Bronze, 3 Silver, 1 Gold)**
 | Name | Email | Tier |
 |------|-------|------|
@@ -201,6 +206,8 @@ Each vehicle carries exactly 6 of the 10 equipment types. The combination is des
 | Name | Email | Role |
 |------|-------|------|
 | Simulator | simulator@system.internal | Simulator |
+
+There is exactly **one** `Simulator`-role account, and its only job is positions: it posts vehicle positions for **all** vehicles via `POST /vehicles/{id}/position` and reads fleet job-state via `GET /simulator/fleet-state` to drive those positions (including for human-controlled trucks). It makes **no** job decisions. Job decisions (claim, accept/decline, arrive, complete) are made by the simulator process additionally logging in as the real `rep1`…`rep8` accounts — those are ordinary `ServiceRep` accounts, not the `Simulator` account. See central repo ADR-0009 (Human Takeover) for the rationale behind this split.
 
 ### Default Passwords
 
