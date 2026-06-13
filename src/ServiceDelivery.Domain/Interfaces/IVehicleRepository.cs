@@ -15,4 +15,6 @@ public interface IVehicleRepository
     Task<Vehicle?> GetByIdAsync(Guid vehicleId, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(Vehicle vehicle, CancellationToken cancellationToken = default);
+
+    Task<Vehicle?> GetByClaimedRepIdAsync(Guid repId, CancellationToken cancellationToken = default);
 }

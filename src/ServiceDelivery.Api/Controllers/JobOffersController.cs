@@ -1,0 +1,37 @@
+using System.Security.Claims;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ServiceDelivery.Application.Features.JobOffers.Queries;
+
+namespace ServiceDelivery.Api.Controllers;
+
+[ApiController]
+[Route("job-offers")]
+[Authorize]
+public class JobOffersController : ControllerBase
+{
+    private readonly IMediator _mediator;
+
+    public JobOffersController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [HttpGet("pending")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> GetPendingJobOffer()
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetPendingJobOfferQuery(repId));
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
+}
