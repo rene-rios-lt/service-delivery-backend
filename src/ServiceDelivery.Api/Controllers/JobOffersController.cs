@@ -60,4 +60,28 @@ public class JobOffersController : ControllerBase
             return Conflict(new { error = ex.Message });
         }
     }
+
+    [HttpPost("{id:guid}/decline")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> Decline(Guid id)
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new DeclineJobOfferCommand(id, repId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidJobOfferStateException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
+    }
 }
