@@ -9,4 +9,6 @@ public interface IJobOfferRepository
     Task<IReadOnlyList<Guid>> GetSkippedRepIdsForRequestAsync(
         Guid serviceRequestId,
         CancellationToken cancellationToken = default);
+
+    Task<JobOffer?> GetPendingByRepIdAsync(Guid repId, CancellationToken cancellationToken = default);
 }

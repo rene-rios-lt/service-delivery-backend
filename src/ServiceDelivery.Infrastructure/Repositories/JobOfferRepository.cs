@@ -32,4 +32,12 @@ public class JobOfferRepository : IJobOfferRepository
             .Distinct()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<JobOffer?> GetPendingByRepIdAsync(Guid repId, CancellationToken cancellationToken = default)
+    {
+        return await _context.JobOffers
+            .Where(o => o.RepId == repId && o.Status == JobOfferStatus.Pending)
+            .OrderByDescending(o => o.OfferedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

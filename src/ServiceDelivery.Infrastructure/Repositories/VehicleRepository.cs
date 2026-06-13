@@ -46,4 +46,10 @@ public class VehicleRepository : IVehicleRepository
         _context.Vehicles.Update(vehicle);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<Vehicle?> GetByClaimedRepIdAsync(Guid repId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .FirstOrDefaultAsync(v => v.ClaimedByRepId == repId, cancellationToken);
+    }
 }
