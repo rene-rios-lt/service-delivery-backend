@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using ServiceDelivery.Api.BackgroundServices;
 using ServiceDelivery.Api.Hubs;
 using ServiceDelivery.Api.Services;
 using ServiceDelivery.Application.Common.Interfaces;
@@ -37,6 +38,7 @@ builder.Services.AddScoped<IJobOfferRepository, JobOfferRepository>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
+builder.Services.AddScoped<IExpiredJobOfferSweeper, ExpiredJobOfferSweeper>();
 
 // Hub service registrations
 builder.Services.AddScoped<IVehiclePositionHubService, VehiclePositionHubService>();
@@ -50,6 +52,10 @@ builder.Services.AddMediatR(cfg =>
 
 // JWT settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+// Job offer expiry background sweep (first hosted service in the codebase — see plan D1)
+builder.Services.Configure<JobOfferExpiryOptions>(builder.Configuration.GetSection("JobOfferExpiry"));
+builder.Services.AddHostedService<ExpireJobOffersBackgroundService>();
 
 // JWT Bearer authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
