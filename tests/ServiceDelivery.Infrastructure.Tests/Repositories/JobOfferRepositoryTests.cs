@@ -71,4 +71,72 @@ public class JobOfferRepositoryTests
         skipped.Should().NotContain(pendingRep);
         skipped.Should().NotContain(otherRequestRep);
     }
+
+    [Fact]
+    public async Task GivenAPersistedOffer_WhenGetByIdAsyncCalled_ThenThatOfferIsReturned()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var offerId = Guid.NewGuid();
+        context.JobOffers.Add(new JobOffer
+        {
+            Id = offerId,
+            ServiceRequestId = Guid.NewGuid(),
+            RepId = Guid.NewGuid(),
+            OfferedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddSeconds(60),
+            Status = JobOfferStatus.Pending
+        });
+        await context.SaveChangesAsync();
+        var repository = new JobOfferRepository(context);
+
+        // Act
+        var result = await repository.GetByIdAsync(offerId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(offerId);
+    }
+
+    [Fact]
+    public async Task GivenNoMatchingOffer_WhenGetByIdAsyncCalled_ThenNullIsReturned()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var repository = new JobOfferRepository(context);
+
+        // Act
+        var result = await repository.GetByIdAsync(Guid.NewGuid());
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GivenAnAcceptedOffer_WhenUpdateAsyncCalled_ThenTheNewStatusIsPersisted()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var offerId = Guid.NewGuid();
+        var offer = new JobOffer
+        {
+            Id = offerId,
+            ServiceRequestId = Guid.NewGuid(),
+            RepId = Guid.NewGuid(),
+            OfferedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddSeconds(60),
+            Status = JobOfferStatus.Pending
+        };
+        context.JobOffers.Add(offer);
+        await context.SaveChangesAsync();
+        var repository = new JobOfferRepository(context);
+
+        // Act
+        offer.Status = JobOfferStatus.Accepted;
+        await repository.UpdateAsync(offer);
+
+        // Assert
+        var persisted = await context.JobOffers.FirstOrDefaultAsync(o => o.Id == offerId);
+        persisted!.Status.Should().Be(JobOfferStatus.Accepted);
+    }
 }

@@ -9,4 +9,11 @@ public class RepStateRecord
     public Guid? ActiveRequestId { get; set; }
     public DateTime? LastRedirectedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public void GoEnRoute(Guid requestId)
+    {
+        State = RepState.EnRoute;
+        ActiveRequestId = requestId;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

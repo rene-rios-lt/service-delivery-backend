@@ -40,4 +40,16 @@ public class JobOfferRepository : IJobOfferRepository
             .OrderByDescending(o => o.OfferedAt)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<JobOffer?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.JobOffers
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+    }
+
+    public async Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default)
+    {
+        _context.JobOffers.Update(offer);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }
