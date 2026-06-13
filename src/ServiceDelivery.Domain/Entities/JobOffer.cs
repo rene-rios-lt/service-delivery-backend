@@ -29,4 +29,13 @@ public class JobOffer
 
         Status = JobOfferStatus.Declined;
     }
+
+    public void Expire()
+    {
+        if (Status != JobOfferStatus.Pending)
+            throw new InvalidJobOfferStateException(
+                $"Job offer {Id} cannot be expired from state {Status}; only a Pending offer can be expired.");
+
+        Status = JobOfferStatus.Expired;
+    }
 }

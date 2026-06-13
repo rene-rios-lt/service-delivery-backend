@@ -47,6 +47,15 @@ public class JobOfferRepository : IJobOfferRepository
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<JobOffer>> GetExpiredPendingAsync(
+        DateTime asOf,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.JobOffers
+            .Where(o => o.Status == JobOfferStatus.Pending && o.ExpiresAt <= asOf)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default)
     {
         _context.JobOffers.Update(offer);
