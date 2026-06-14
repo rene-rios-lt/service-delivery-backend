@@ -25,4 +25,7 @@ public class RequesterHubService : IRequesterHubService
 
     public Task SendServiceCompletedAsync(string requesterUserGroup, ServiceCompletedPayload payload, CancellationToken ct = default)
         => _hubContext.Clients.Group(requesterUserGroup).SendAsync("ServiceCompleted", payload, ct);
+
+    public Task SendRepArrivedAsync(string requesterUserGroup, RepArrivedPayload payload, CancellationToken ct = default)
+        => _hubContext.Clients.Group(requesterUserGroup).SendAsync("RepArrived", payload, ct);
 }

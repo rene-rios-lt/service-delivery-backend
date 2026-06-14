@@ -1,4 +1,5 @@
 using ServiceDelivery.Domain.Enums;
+using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Domain.Entities;
 
@@ -14,6 +15,16 @@ public class RepStateRecord
     {
         State = RepState.EnRoute;
         ActiveRequestId = requestId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void GoOnSite()
+    {
+        if (State != RepState.Within15Miles)
+            throw new InvalidRepStateException(
+                $"Rep {RepId} cannot go on site from state {State}; only a Within15Miles rep can arrive on site.");
+
+        State = RepState.OnSite;
         UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -172,6 +172,7 @@ The simulator pushes positions via REST — it is not a SignalR publisher. The b
 | `RepPositionUpdated` | `{ latitude, longitude, etaMinutes, state }` | Position update for assigned rep |
 | `RepRedirected` | `{ oldRepName, newRepName, newEtaMinutes }` | Sent after new rep accepts displaced job |
 | `ServiceCompleted` | `{}` | Rep marked complete |
+| `RepArrived` | `{ repId, requestId }` | Rep marked arrived on site |
 
 ---
 
