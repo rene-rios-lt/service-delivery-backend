@@ -25,4 +25,13 @@ public class ServiceRequest
         Status = ServiceRequestStatus.Assigned;
         AssignedRepId = repId;
     }
+
+    public void MarkInProgress()
+    {
+        if (Status != ServiceRequestStatus.Assigned)
+            throw new InvalidServiceRequestStateException(
+                $"Service request {Id} cannot be marked in progress from state {Status}; only an Assigned request can be marked in progress.");
+
+        Status = ServiceRequestStatus.InProgress;
+    }
 }
