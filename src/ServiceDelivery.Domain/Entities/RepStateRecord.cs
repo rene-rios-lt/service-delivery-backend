@@ -27,4 +27,15 @@ public class RepStateRecord
         State = RepState.OnSite;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void GoAvailable()
+    {
+        if (State != RepState.OnSite)
+            throw new InvalidRepStateException(
+                $"Rep {RepId} cannot go available from state {State}; only an OnSite rep can complete a job.");
+
+        State = RepState.Available;
+        ActiveRequestId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

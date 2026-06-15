@@ -46,4 +46,32 @@ public class RepController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    [HttpPost("complete")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> Complete()
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new CompleteCommand(repId));
+            return Ok(result);
+        }
+        catch (NoActiveAssignedRequestException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidRepStateException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidServiceRequestStateException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }

@@ -115,7 +115,7 @@ public class RequesterHubTests
         await connection.StartAsync();
         await HubTestHelpers.WaitForReadyAsync(connection);
 
-        var payload = new ServiceCompletedPayload();
+        var payload = new ServiceCompletedPayload(SeedConstants.Dtc001Id);
         var requesterGroup = $"requester:{SeedConstants.Bronze1Id}";
 
         // Act
