@@ -34,4 +34,13 @@ public class ServiceRequest
 
         Status = ServiceRequestStatus.InProgress;
     }
+
+    public void MarkCompleted()
+    {
+        if (Status != ServiceRequestStatus.InProgress)
+            throw new InvalidServiceRequestStateException(
+                $"Service request {Id} cannot be completed from state {Status}; only an InProgress request can be completed.");
+
+        Status = ServiceRequestStatus.Completed;
+    }
 }
