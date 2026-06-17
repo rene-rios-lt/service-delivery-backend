@@ -121,6 +121,50 @@ public class RepStateRepositoryTests
     }
 
     [Fact]
+    public async Task GivenAnExistingHumanControlledRecord_WhenADetachedClearedRecordIsUpserted_ThenHumanControlledIsPersistedAsFalse()
+    {
+        // Arrange — an existing tracked record with the marker set true.
+        var databaseName = $"RepStateRepositoryTests_{Guid.NewGuid()}";
+        var repId = Guid.NewGuid();
+        using (var seedContext = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+                   .UseInMemoryDatabase(databaseName).Options))
+        {
+            seedContext.RepStateRecords.Add(new RepStateRecord
+            {
+                RepId = repId,
+                State = RepState.OnSite,
+                ActiveRequestId = Guid.NewGuid(),
+                HumanControlled = true,
+                UpdatedAt = DateTime.UtcNow.AddMinutes(-5)
+            });
+            await seedContext.SaveChangesAsync();
+        }
+
+        // A separate context receives a detached record whose marker has been cleared.
+        using var upsertContext = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName).Options);
+        var repository = new RepStateRepository(upsertContext);
+        var cleared = new RepStateRecord
+        {
+            RepId = repId,
+            State = RepState.Offline,
+            ActiveRequestId = null,
+            HumanControlled = false,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // Act
+        await repository.UpsertAsync(cleared);
+
+        // Assert
+        using var verifyContext = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName).Options);
+        var reloaded = await new RepStateRepository(verifyContext).GetByRepIdAsync(repId);
+        reloaded!.HumanControlled.Should().BeFalse();
+        reloaded.State.Should().Be(RepState.Offline);
+    }
+
+    [Fact]
     public async Task GivenAnAvailableRepWithEndedSession_WhenGetAvailableByDealer_ThenExcluded()
     {
         // Arrange

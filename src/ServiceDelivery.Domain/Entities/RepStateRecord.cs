@@ -8,6 +8,7 @@ public class RepStateRecord
     public Guid RepId { get; set; }
     public RepState State { get; set; } = RepState.Offline;
     public Guid? ActiveRequestId { get; set; }
+    public bool HumanControlled { get; set; }
     public DateTime? LastRedirectedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -36,6 +37,14 @@ public class RepStateRecord
 
         State = RepState.Available;
         ActiveRequestId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void GoOffline()
+    {
+        State = RepState.Offline;
+        ActiveRequestId = null;
+        HumanControlled = false;
         UpdatedAt = DateTime.UtcNow;
     }
 }

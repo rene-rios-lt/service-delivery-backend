@@ -149,7 +149,7 @@ public class DispatchHubTests
 
         var repId = SeedConstants.Rep1Id;
         var requestId = Guid.NewGuid();
-        var payload = new RepOfflineMidJobPayload(repId, requestId);
+        var payload = new RepOfflineMidJobPayload(repId, requestId, "Rep One", "Hydraulic system fault");
         var dealerGroup = $"dealer:{SeedConstants.DealerId}";
 
         // Act
@@ -161,6 +161,8 @@ public class DispatchHubTests
         var received = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
         received.RepId.Should().Be(repId);
         received.RequestId.Should().Be(requestId);
+        received.RepName.Should().Be("Rep One");
+        received.DtcTitle.Should().Be("Hydraulic system fault");
 
         await connection.StopAsync();
     }

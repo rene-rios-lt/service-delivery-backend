@@ -2,4 +2,6 @@ namespace ServiceDelivery.Application.Common.Interfaces.Payloads;
 
 public record RepOfflineMidJobPayload(
     Guid RepId,
-    Guid RequestId);
+    Guid RequestId,
+    string RepName,
+    string DtcTitle);
