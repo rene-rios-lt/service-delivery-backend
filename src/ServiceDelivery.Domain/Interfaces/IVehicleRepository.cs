@@ -1,9 +1,14 @@
 using ServiceDelivery.Domain.Entities;
+using ServiceDelivery.Domain.Projections;
 
 namespace ServiceDelivery.Domain.Interfaces;
 
 public interface IVehicleRepository
 {
+    Task<IReadOnlyList<FleetJobState>> GetFleetJobStateByDealerAsync(
+        Guid dealerId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Vehicle>> GetAllByDealerIdAsync(
         Guid dealerId,
         CancellationToken cancellationToken = default);
