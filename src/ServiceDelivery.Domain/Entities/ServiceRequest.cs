@@ -35,6 +35,16 @@ public class ServiceRequest
         Status = ServiceRequestStatus.InProgress;
     }
 
+    public void ReturnToPending()
+    {
+        if (Status != ServiceRequestStatus.Assigned && Status != ServiceRequestStatus.InProgress)
+            throw new InvalidServiceRequestStateException(
+                $"Service request {Id} cannot be returned to pending from state {Status}; only an Assigned or InProgress request can be re-queued.");
+
+        Status = ServiceRequestStatus.Pending;
+        AssignedRepId = null;
+    }
+
     public void MarkCompleted()
     {
         if (Status != ServiceRequestStatus.InProgress)

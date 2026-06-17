@@ -9,4 +9,5 @@ public interface IRequesterHubService
     Task SendRepRedirectedAsync(string requesterUserGroup, RepRedirectedPayload payload, CancellationToken ct = default);
     Task SendServiceCompletedAsync(string requesterUserGroup, ServiceCompletedPayload payload, CancellationToken ct = default);
     Task SendRepArrivedAsync(string requesterUserGroup, RepArrivedPayload payload, CancellationToken ct = default);
+    Task SendRequestBackToPendingAsync(string requesterUserGroup, RequestBackToPendingPayload payload, CancellationToken ct = default);
 }

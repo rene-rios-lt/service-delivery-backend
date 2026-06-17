@@ -33,6 +33,7 @@ public class RepStateRepository : IRepStateRepository
         {
             existing.State = record.State;
             existing.ActiveRequestId = record.ActiveRequestId;
+            existing.HumanControlled = record.HumanControlled;
             existing.LastRedirectedAt = record.LastRedirectedAt;
             existing.UpdatedAt = record.UpdatedAt;
         }
