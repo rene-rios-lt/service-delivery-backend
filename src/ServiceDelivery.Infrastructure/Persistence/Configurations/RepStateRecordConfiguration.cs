@@ -13,5 +13,6 @@ public class RepStateRecordConfiguration : IEntityTypeConfiguration<RepStateReco
         builder.Property(rsr => rsr.State).HasConversion<string>();
         builder.Property(rsr => rsr.ActiveRequestId).IsRequired(false);
         builder.Property(rsr => rsr.LastRedirectedAt).IsRequired(false);
+        builder.Property(rsr => rsr.LastHeartbeatAt).IsRequired(false);
     }
 }

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using ServiceDelivery.Application.Features.Vehicles.Commands;
 using ServiceDelivery.Application.Features.Vehicles.Queries;
@@ -116,6 +117,38 @@ public class VehiclesController : ControllerBase
         catch (VehicleReleaseBlockedByActiveJobException ex)
         {
             return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:guid}/take-over")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> TakeOver(Guid id)
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new TakeOverVehicleCommand(id, repId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (RepNotIdleException ex)
+        {
+            return Conflict(new { reason = ex.Message });
+        }
+        catch (VehicleNotIdleException ex)
+        {
+            return Conflict(new { reason = ex.Message });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict(new { reason = "Vehicle is no longer idle; it was taken over concurrently." });
         }
     }
 
