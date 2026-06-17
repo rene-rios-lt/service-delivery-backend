@@ -10,6 +10,7 @@ public class RepStateRecord
     public Guid? ActiveRequestId { get; set; }
     public bool HumanControlled { get; set; }
     public DateTime? LastRedirectedAt { get; set; }
+    public DateTime? LastHeartbeatAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     public void GoEnRoute(Guid requestId)
@@ -46,5 +47,15 @@ public class RepStateRecord
         ActiveRequestId = null;
         HumanControlled = false;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void TakeOver()
+    {
+        var now = DateTime.UtcNow;
+        State = RepState.Available;
+        ActiveRequestId = null;
+        HumanControlled = true;
+        LastHeartbeatAt = now;
+        UpdatedAt = now;
     }
 }
