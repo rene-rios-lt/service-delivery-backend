@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using ServiceDelivery.Domain.Entities;
+using ServiceDelivery.Domain.Enums;
 using ServiceDelivery.Domain.Interfaces;
+using ServiceDelivery.Domain.Projections;
 using ServiceDelivery.Infrastructure.Persistence;
 
 namespace ServiceDelivery.Infrastructure.Repositories;
@@ -51,5 +53,34 @@ public class VehicleRepository : IVehicleRepository
     {
         return await _context.Vehicles
             .FirstOrDefaultAsync(v => v.ClaimedByRepId == repId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<FleetJobState>> GetFleetJobStateByDealerAsync(
+        Guid dealerId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Vehicles
+            .Where(v => v.DealerId == dealerId)
+            .GroupJoin(_context.RepStateRecords,
+                v => v.ClaimedByRepId,
+                rs => (Guid?)rs.RepId,
+                (v, states) => new { Vehicle = v, States = states })
+            .SelectMany(
+                x => x.States.DefaultIfEmpty(),
+                (x, state) => new { x.Vehicle, State = state })
+            .GroupJoin(_context.ServiceRequests,
+                x => x.State != null ? x.State.ActiveRequestId : null,
+                req => (Guid?)req.Id,
+                (x, requests) => new { x.Vehicle, x.State, Requests = requests })
+            .SelectMany(
+                x => x.Requests.DefaultIfEmpty(),
+                (x, request) => new FleetJobState(
+                    x.Vehicle.Id,
+                    x.Vehicle.ClaimedByRepId,
+                    x.State != null ? (RepState?)x.State.State : null,
+                    x.State != null && x.State.HumanControlled,
+                    request != null ? (double?)request.Latitude : null,
+                    request != null ? (double?)request.Longitude : null))
+            .ToListAsync(cancellationToken);
     }
 }
