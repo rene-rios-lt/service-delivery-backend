@@ -47,8 +47,7 @@ public class ReleaseVehicleCommandHandler : IRequestHandler<ReleaseVehicleComman
 
         if (repState is not null)
         {
-            repState.State = RepState.Offline;
-            repState.UpdatedAt = DateTime.UtcNow;
+            repState.GoOffline();
             await _repStateRepository.UpsertAsync(repState, cancellationToken);
         }
 

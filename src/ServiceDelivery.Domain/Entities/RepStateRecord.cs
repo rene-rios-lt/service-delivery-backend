@@ -49,6 +49,13 @@ public class RepStateRecord
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void RecordHeartbeat()
+    {
+        var now = DateTime.UtcNow;
+        LastHeartbeatAt = now;
+        UpdatedAt = now;
+    }
+
     public void TakeOver()
     {
         var now = DateTime.UtcNow;

@@ -35,10 +35,19 @@ public class RepStateRepository : IRepStateRepository
             existing.ActiveRequestId = record.ActiveRequestId;
             existing.HumanControlled = record.HumanControlled;
             existing.LastRedirectedAt = record.LastRedirectedAt;
+            existing.LastHeartbeatAt = record.LastHeartbeatAt;
             existing.UpdatedAt = record.UpdatedAt;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<RepStateRecord>> GetStaleHumanControlledAsync(DateTime olderThan, CancellationToken cancellationToken = default)
+    {
+        return await _context.RepStateRecords
+            .Where(r => r.HumanControlled
+                        && (r.LastHeartbeatAt == null || r.LastHeartbeatAt < olderThan))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<RepMatchCandidate>> GetAvailableByDealerAsync(Guid dealerId, CancellationToken cancellationToken = default)

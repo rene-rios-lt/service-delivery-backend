@@ -40,6 +40,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddScoped<IExpiredJobOfferSweeper, ExpiredJobOfferSweeper>();
 builder.Services.AddScoped<IPendingRequestReconciler, PendingRequestReconciler>();
+builder.Services.AddScoped<IStaleHeartbeatSweeper, StaleHeartbeatSweeper>();
 
 // Hub service registrations
 builder.Services.AddScoped<IVehiclePositionHubService, VehiclePositionHubService>();
@@ -62,6 +63,16 @@ builder.Services.AddHostedService<ExpireJobOffersBackgroundService>();
 // with no Pending offer (mirrors the BE-018 hosted-service pattern; see plan BE-029).
 builder.Services.Configure<ReconcilePendingRequestsOptions>(builder.Configuration.GetSection("ReconcilePendingRequests"));
 builder.Services.AddHostedService<ReconcilePendingRequestsBackgroundService>();
+
+// Heartbeat timeout background sweep (BE-028). The timer cadence (HeartbeatTimeoutOptions, Api) and the
+// staleness threshold (HeartbeatTimeoutSettings, Application) bind from the same "HeartbeatTimeout" section.
+// HeartbeatTimeoutSettings is a plain Application-layer class (Application has no IOptions dependency), so
+// it is bound here and registered as a singleton instance for direct injection into the sweeper.
+builder.Services.Configure<HeartbeatTimeoutOptions>(builder.Configuration.GetSection("HeartbeatTimeout"));
+var heartbeatTimeoutSettings = builder.Configuration.GetSection("HeartbeatTimeout").Get<HeartbeatTimeoutSettings>()
+    ?? new HeartbeatTimeoutSettings();
+builder.Services.AddSingleton(heartbeatTimeoutSettings);
+builder.Services.AddHostedService<HeartbeatTimeoutBackgroundService>();
 
 // JWT Bearer authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
