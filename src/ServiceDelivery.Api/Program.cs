@@ -74,6 +74,13 @@ var heartbeatTimeoutSettings = builder.Configuration.GetSection("HeartbeatTimeou
 builder.Services.AddSingleton(heartbeatTimeoutSettings);
 builder.Services.AddHostedService<HeartbeatTimeoutBackgroundService>();
 
+// Redirect cooldown window (BE-022). RedirectOptions is a plain Application-layer class (Application has
+// no IOptions dependency), bound from the "Redirect" section and registered as a singleton for direct
+// injection into RedirectRepCommandHandler — mirrors the HeartbeatTimeoutSettings pattern above.
+var redirectOptions = builder.Configuration.GetSection("Redirect").Get<RedirectOptions>()
+    ?? new RedirectOptions();
+builder.Services.AddSingleton(redirectOptions);
+
 // JWT Bearer authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

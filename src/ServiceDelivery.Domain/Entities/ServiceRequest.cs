@@ -14,6 +14,7 @@ public class ServiceRequest
     public ServiceRequestStatus Status { get; set; } = ServiceRequestStatus.Pending;
     public ServiceTier Tier { get; set; }
     public Guid? AssignedRepId { get; set; }
+    public Guid? DisplacedFromRepId { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public void AssignTo(Guid repId)
@@ -43,6 +44,22 @@ public class ServiceRequest
 
         Status = ServiceRequestStatus.Pending;
         AssignedRepId = null;
+    }
+
+    public void ReturnToPendingDisplacedBy(Guid displacedRepId)
+    {
+        if (Status != ServiceRequestStatus.Assigned && Status != ServiceRequestStatus.InProgress)
+            throw new InvalidServiceRequestStateException(
+                $"Service request {Id} cannot be returned to pending from state {Status}; only an Assigned or InProgress request can be re-queued.");
+
+        Status = ServiceRequestStatus.Pending;
+        AssignedRepId = null;
+        DisplacedFromRepId = displacedRepId;
+    }
+
+    public void ClearDisplacement()
+    {
+        DisplacedFromRepId = null;
     }
 
     public void MarkCompleted()

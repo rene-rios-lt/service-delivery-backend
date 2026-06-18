@@ -20,6 +20,14 @@ public class RepStateRecord
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Redirect(Guid newRequestId, DateTime now)
+    {
+        State = RepState.EnRoute;
+        ActiveRequestId = newRequestId;
+        LastRedirectedAt = now;
+        UpdatedAt = now;
+    }
+
     public void GoOnSite()
     {
         if (State != RepState.Within15Miles)
