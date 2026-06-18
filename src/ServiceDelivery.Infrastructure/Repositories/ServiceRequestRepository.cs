@@ -104,6 +104,13 @@ public class ServiceRequestRepository : IServiceRequestRepository
             offerHistory);
     }
 
+    public async Task<IReadOnlyList<ServiceRequest>> GetOrphanedPendingAsync(CancellationToken cancellationToken = default)
+        => await _context.ServiceRequests
+            .Where(r => r.Status == ServiceRequestStatus.Pending
+                        && !_context.JobOffers.Any(o => o.ServiceRequestId == r.Id
+                                                        && o.Status == JobOfferStatus.Pending))
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<ServiceRequestSummary>> GetActiveByDealerIdAsync(Guid dealerId, CancellationToken cancellationToken = default)
     {
         return await _context.ServiceRequests
