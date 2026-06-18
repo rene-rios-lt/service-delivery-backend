@@ -47,6 +47,26 @@ public class RepController : ControllerBase
         }
     }
 
+    [HttpPost("heartbeat")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> Heartbeat()
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator.Send(new HeartbeatCommand(repId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
     [HttpPost("complete")]
     [Authorize(Roles = "ServiceRep")]
     public async Task<IActionResult> Complete()
