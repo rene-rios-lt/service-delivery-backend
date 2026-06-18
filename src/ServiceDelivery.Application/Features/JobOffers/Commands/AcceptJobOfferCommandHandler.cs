@@ -57,7 +57,9 @@ public class AcceptJobOfferCommandHandler
         await _serviceRequestRepository.UpdateAsync(serviceRequest, cancellationToken);
         await _repStateRepository.UpsertAsync(repState, cancellationToken);
 
-        await BroadcastAsync(offer, serviceRequest, oldRepState, repState.State.ToString(), cancellationToken);
+        var etaMinutes = await BroadcastAsync(offer, serviceRequest, oldRepState, repState.State.ToString(), cancellationToken);
+
+        await EmitDeferredRepRedirectedAsync(offer, serviceRequest, etaMinutes, cancellationToken);
 
         return new AcceptJobOfferResult(
             offer.Id,
@@ -67,7 +69,32 @@ public class AcceptJobOfferCommandHandler
             repState.State.ToString());
     }
 
-    private async Task BroadcastAsync(
+    // The displaced requester's RepRedirected notification is deferred until a NEW rep accepts the
+    // request that was returned to Pending by a redirect (stamped via ServiceRequest.DisplacedFromRepId).
+    // This is additive to the accept flow (Open/Closed) and is a one-shot: the stamp is cleared and
+    // persisted so the event never fires twice.
+    private async Task EmitDeferredRepRedirectedAsync(
+        JobOffer offer,
+        ServiceRequest serviceRequest,
+        double newEtaMinutes,
+        CancellationToken cancellationToken)
+    {
+        if (serviceRequest.DisplacedFromRepId is not Guid displacedRepId)
+            return;
+
+        var oldRep = await _userRepository.FindByIdAsync(displacedRepId, cancellationToken);
+        var newRep = await _userRepository.FindByIdAsync(offer.RepId, cancellationToken);
+
+        await _requesterHub.SendRepRedirectedAsync(
+            $"requester:{serviceRequest.RequesterId}",
+            new RepRedirectedPayload(oldRep?.Name ?? string.Empty, newRep?.Name ?? string.Empty, newEtaMinutes),
+            cancellationToken);
+
+        serviceRequest.ClearDisplacement();
+        await _serviceRequestRepository.UpdateAsync(serviceRequest, cancellationToken);
+    }
+
+    private async Task<double> BroadcastAsync(
         JobOffer offer,
         ServiceRequest serviceRequest,
         string oldRepState,
@@ -93,6 +120,8 @@ public class AcceptJobOfferCommandHandler
             $"dealer:{serviceRequest.DealerId}",
             new RepStateChangedPayload(offer.RepId, oldRepState, newRepState),
             cancellationToken);
+
+        return etaMinutes;
     }
 
     private async Task<(double EtaMinutes, double Latitude, double Longitude)> ComputeEtaAndPositionAsync(

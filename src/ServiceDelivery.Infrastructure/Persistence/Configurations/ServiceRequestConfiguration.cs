@@ -13,5 +13,6 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
         builder.Property(sr => sr.Status).HasConversion<string>();
         builder.Property(sr => sr.Tier).HasConversion<string>();
         builder.Property(sr => sr.AssignedRepId).IsRequired(false);
+        builder.Property(sr => sr.DisplacedFromRepId).IsRequired(false);
     }
 }

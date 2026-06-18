@@ -40,11 +40,14 @@ public class AcceptJobOfferCommandHandlerTests
             _dispatchHub.Object);
     }
 
+    private static readonly Guid DisplacedFromRepId = Guid.NewGuid();
+
     private void SetupHappyPath(
         JobOfferStatus offerStatus = JobOfferStatus.Pending,
         ServiceRequestStatus requestStatus = ServiceRequestStatus.Pending,
         RepState repState = RepState.Available,
-        bool withVehiclePosition = true)
+        bool withVehiclePosition = true,
+        Guid? displacedFromRepId = null)
     {
         var offer = new JobOffer
         {
@@ -65,6 +68,7 @@ public class AcceptJobOfferCommandHandlerTests
             Longitude = -93.6,
             Status = requestStatus,
             Tier = ServiceTier.Gold,
+            DisplacedFromRepId = displacedFromRepId,
             CreatedAt = DateTime.UtcNow
         };
         var repStateRecord = new RepStateRecord
@@ -79,6 +83,8 @@ public class AcceptJobOfferCommandHandlerTests
         _repStateRepository.Setup(r => r.GetByRepIdAsync(RepId, It.IsAny<CancellationToken>())).ReturnsAsync(repStateRecord);
         _userRepository.Setup(r => r.FindByIdAsync(RepId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new User { Id = RepId, Name = "Rep One" });
+        _userRepository.Setup(r => r.FindByIdAsync(DisplacedFromRepId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new User { Id = DisplacedFromRepId, Name = "Rep Two" });
 
         if (withVehiclePosition)
         {
@@ -238,6 +244,55 @@ public class AcceptJobOfferCommandHandlerTests
         _requesterHub.Verify(h => h.SendRepAssignedAsync(It.IsAny<string>(), It.IsAny<RepAssignedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
         _dispatchHub.Verify(h => h.SendServiceRequestAssignedAsync(It.IsAny<string>(), It.IsAny<ServiceRequestAssignedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
         _dispatchHub.Verify(h => h.SendRepStateChangedAsync(It.IsAny<string>(), It.IsAny<RepStateChangedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GivenADisplacedRequest_WhenANewRepAcceptsIt_ThenRepRedirectedIsEmittedToDisplacedRequester()
+    {
+        // Arrange
+        SetupHappyPath(displacedFromRepId: DisplacedFromRepId);
+        var expectedDistance = HaversineCalculator.DistanceMiles(41.5, -93.6, 41.6, -93.6);
+        var expectedEta = HaversineCalculator.EtaMinutes(expectedDistance);
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _requesterHub.Verify(h => h.SendRepRedirectedAsync(
+            $"requester:{RequesterId}",
+            It.Is<RepRedirectedPayload>(p => p.OldRepName == "Rep Two"
+                                             && p.NewRepName == "Rep One"
+                                             && Math.Abs(p.NewEtaMinutes - expectedEta) < 0.0001),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenADisplacedRequest_WhenANewRepAcceptsIt_ThenDisplacementIsCleared()
+    {
+        // Arrange
+        SetupHappyPath(displacedFromRepId: DisplacedFromRepId);
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _serviceRequestRepository.Verify(r => r.UpdateAsync(
+            It.Is<ServiceRequest>(s => s.Id == RequestId && s.DisplacedFromRepId == null),
+            It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task GivenANonDisplacedRequest_WhenAccepted_ThenNoRepRedirectedIsEmitted()
+    {
+        // Arrange
+        SetupHappyPath(displacedFromRepId: null);
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _requesterHub.Verify(h => h.SendRepRedirectedAsync(
+            It.IsAny<string>(), It.IsAny<RepRedirectedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
