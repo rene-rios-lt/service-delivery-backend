@@ -9,6 +9,10 @@ public interface IVehicleRepository
         Guid dealerId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<DispatcherFleetEntry>> GetDispatcherFleetByDealerAsync(
+        Guid dealerId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Vehicle>> GetAllByDealerIdAsync(
         Guid dealerId,
         CancellationToken cancellationToken = default);
