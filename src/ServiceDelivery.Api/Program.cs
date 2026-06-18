@@ -39,6 +39,7 @@ builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddScoped<IExpiredJobOfferSweeper, ExpiredJobOfferSweeper>();
+builder.Services.AddScoped<IPendingRequestReconciler, PendingRequestReconciler>();
 
 // Hub service registrations
 builder.Services.AddScoped<IVehiclePositionHubService, VehiclePositionHubService>();
@@ -56,6 +57,11 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 // Job offer expiry background sweep (first hosted service in the codebase — see plan D1)
 builder.Services.Configure<JobOfferExpiryOptions>(builder.Configuration.GetSection("JobOfferExpiry"));
 builder.Services.AddHostedService<ExpireJobOffersBackgroundService>();
+
+// Orphaned pending-request reconciler — periodic backstop that re-matches Pending requests left
+// with no Pending offer (mirrors the BE-018 hosted-service pattern; see plan BE-029).
+builder.Services.Configure<ReconcilePendingRequestsOptions>(builder.Configuration.GetSection("ReconcilePendingRequests"));
+builder.Services.AddHostedService<ReconcilePendingRequestsBackgroundService>();
 
 // JWT Bearer authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
