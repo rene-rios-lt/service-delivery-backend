@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceDelivery.Application.Features.Rep.Commands;
+using ServiceDelivery.Application.Features.Rep.Queries;
 using ServiceDelivery.Domain.Exceptions;
 
 namespace ServiceDelivery.Api.Controllers;
@@ -45,6 +46,20 @@ public class RepController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpGet("active-job-state")]
+    [Authorize(Roles = "ServiceRep")]
+    public async Task<IActionResult> GetActiveJobState()
+    {
+        var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(repIdClaim, out var repId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetActiveJobStateQuery(repId));
+
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("heartbeat")]
