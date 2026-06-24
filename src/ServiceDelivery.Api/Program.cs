@@ -20,6 +20,18 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
+// CORS — allow the Blazor WASM web host (and its HTTPS variant) to call the API and
+// negotiate SignalR. AllowCredentials() is required for the WebSocket upgrade, which in
+// turn requires explicit origins (a wildcard origin cannot be combined with credentials).
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins("http://localhost:5023", "https://localhost:7058")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ServiceDeliveryDb"));
 
@@ -120,6 +132,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
