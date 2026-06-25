@@ -5,6 +5,7 @@ public record MyActiveServiceRequestDto(
     string Tier,
     string DtcTitle,
     string Status,
+    string RepState,
     double RequesterLatitude,
     double RequesterLongitude,
     DateTime CreatedAt
