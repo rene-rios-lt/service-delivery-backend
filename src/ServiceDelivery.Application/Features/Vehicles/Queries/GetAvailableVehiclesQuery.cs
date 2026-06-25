@@ -7,4 +7,5 @@ public record GetAvailableVehiclesQuery(Guid DealerId) : IRequest<IReadOnlyList<
 public record AvailableVehicleDto(
     Guid VehicleId,
     string Registration,
+    string Model,
     IReadOnlyList<string> Equipment);

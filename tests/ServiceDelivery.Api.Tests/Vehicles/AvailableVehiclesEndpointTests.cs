@@ -77,7 +77,28 @@ public class AvailableVehiclesEndpointTests : IClassFixture<CustomWebApplication
         var spotCheck = vehicles!.First();
         spotCheck.VehicleId.Should().NotBeEmpty();
         spotCheck.Registration.Should().NotBeNullOrEmpty();
+        spotCheck.Model.Should().NotBeNullOrEmpty();
         spotCheck.Equipment.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GivenSeededVehicles_WhenGetAvailableVehiclesCalled_ThenResponseIncludesNonNullModel()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var token = await GetTokenAsync(client, "rep1@dealer.com", SeedConstants.DefaultPassword);
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await client.GetAsync("/vehicles/available");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var vehicles = await response.Content.ReadFromJsonAsync<AvailableVehicleDto[]>();
+        vehicles.Should().NotBeNull();
+        vehicles.Should().NotBeEmpty();
+        vehicles!.Should().AllSatisfy(v => v.Model.Should().NotBeNullOrEmpty());
     }
 
     [Fact]
