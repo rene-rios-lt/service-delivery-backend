@@ -57,6 +57,13 @@ public class RepStateRecord
         UpdatedAt = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// True when the rep is actively servicing a job (EnRoute, Within15Miles, or OnSite). A vehicle
+    /// claimed by such a rep cannot be taken over; an idle rep (Available/Offline) can be superseded.
+    /// </summary>
+    public bool IsOnActiveJob() =>
+        State is RepState.EnRoute or RepState.Within15Miles or RepState.OnSite;
+
     public void RecordHeartbeat()
     {
         var now = DateTime.UtcNow;
