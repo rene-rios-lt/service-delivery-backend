@@ -10,63 +10,113 @@ namespace ServiceDelivery.Application.Tests.Features.Vehicles;
 public class GetAvailableVehiclesQueryHandlerTests
 {
     private readonly Mock<IVehicleRepository> _vehicleRepositoryMock;
+    private readonly Mock<IRepStateRepository> _repStateRepositoryMock;
     private readonly GetAvailableVehiclesQueryHandler _handler;
 
     public GetAvailableVehiclesQueryHandlerTests()
     {
         _vehicleRepositoryMock = new Mock<IVehicleRepository>();
-        _handler = new GetAvailableVehiclesQueryHandler(_vehicleRepositoryMock.Object);
+        _repStateRepositoryMock = new Mock<IRepStateRepository>();
+        _handler = new GetAvailableVehiclesQueryHandler(
+            _vehicleRepositoryMock.Object, _repStateRepositoryMock.Object);
     }
 
-    [Fact]
-    public async Task GivenMixedClaimedAndUnclaimedVehicles_WhenGetAvailableVehiclesHandled_ThenOnlyUnclaimedAreReturned()
-    {
-        // Arrange
-        var dealerId = Guid.NewGuid();
-        var unclaimedVehicle = new Vehicle
+    private void SetupVehicles(Guid dealerId, params Vehicle[] vehicles) =>
+        _vehicleRepositoryMock
+            .Setup(r => r.GetAllByDealerIdAsync(dealerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vehicles.ToList());
+
+    private void SetupRepState(Guid repId, RepState state) =>
+        _repStateRepositoryMock
+            .Setup(r => r.GetByRepIdAsync(repId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RepStateRecord { RepId = repId, State = state });
+
+    private static Vehicle Vehicle(Guid dealerId, Guid? claimedBy = null, string reg = "V-001") =>
+        new()
         {
             Id = Guid.NewGuid(),
             DealerId = dealerId,
-            Registration = "V-001",
-            ClaimedByRepId = null,
+            Registration = reg,
+            ClaimedByRepId = claimedBy,
             Equipment = new List<VehicleEquipment>()
         };
 
-        _vehicleRepositoryMock
-            .Setup(r => r.GetUnclaimedByDealerIdAsync(dealerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Vehicle> { unclaimedVehicle });
-
-        var query = new GetAvailableVehiclesQuery(dealerId);
-
-        // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result[0].VehicleId.Should().Be(unclaimedVehicle.Id);
-    }
-
     [Fact]
-    public async Task GivenAllVehiclesClaimed_WhenGetAvailableVehiclesHandled_ThenReturnsEmptyList()
+    public async Task GivenAnUnclaimedVehicle_WhenGetAvailableVehiclesHandled_ThenItIsReturned()
     {
         // Arrange
         var dealerId = Guid.NewGuid();
-
-        _vehicleRepositoryMock
-            .Setup(r => r.GetUnclaimedByDealerIdAsync(dealerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Vehicle>());
-
-        var query = new GetAvailableVehiclesQuery(dealerId);
+        var unclaimed = Vehicle(dealerId, claimedBy: null);
+        SetupVehicles(dealerId, unclaimed);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(new GetAvailableVehiclesQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Should().ContainSingle(v => v.VehicleId == unclaimed.Id);
+    }
+
+    [Fact]
+    public async Task GivenAVehicleClaimedByAnIdleRep_WhenGetAvailableVehiclesHandled_ThenItIsReturned()
+    {
+        // Arrange — the simulator claims all vehicles; an idle (Available) rep can be superseded (FE-007)
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var claimed = Vehicle(dealerId, claimedBy: repId);
+        SetupVehicles(dealerId, claimed);
+        SetupRepState(repId, RepState.Available);
+
+        // Act
+        var result = await _handler.Handle(new GetAvailableVehiclesQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Should().ContainSingle(v => v.VehicleId == claimed.Id);
+    }
+
+    [Theory]
+    [InlineData(RepState.EnRoute)]
+    [InlineData(RepState.Within15Miles)]
+    [InlineData(RepState.OnSite)]
+    public async Task GivenAVehicleClaimedByARepOnAnActiveJob_WhenGetAvailableVehiclesHandled_ThenItIsExcluded(
+        RepState activeState)
+    {
+        // Arrange
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var claimed = Vehicle(dealerId, claimedBy: repId);
+        SetupVehicles(dealerId, claimed);
+        SetupRepState(repId, activeState);
+
+        // Act
+        var result = await _handler.Handle(new GetAvailableVehiclesQuery(dealerId), CancellationToken.None);
 
         // Assert
         result.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task GivenAnUnclaimedVehicle_WhenGetAvailableVehiclesHandled_ThenDtoContainsVehicleIdRegistrationAndEquipment()
+    public async Task GivenAMixOfIdleAndOnJobVehicles_WhenGetAvailableVehiclesHandled_ThenOnlyIdleAreReturned()
+    {
+        // Arrange
+        var dealerId = Guid.NewGuid();
+        var idleRep = Guid.NewGuid();
+        var busyRep = Guid.NewGuid();
+        var idleVehicle = Vehicle(dealerId, claimedBy: idleRep, reg: "V-IDLE");
+        var busyVehicle = Vehicle(dealerId, claimedBy: busyRep, reg: "V-BUSY");
+        var unclaimedVehicle = Vehicle(dealerId, claimedBy: null, reg: "V-FREE");
+        SetupVehicles(dealerId, idleVehicle, busyVehicle, unclaimedVehicle);
+        SetupRepState(idleRep, RepState.Available);
+        SetupRepState(busyRep, RepState.EnRoute);
+
+        // Act
+        var result = await _handler.Handle(new GetAvailableVehiclesQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Select(v => v.VehicleId).Should().BeEquivalentTo(new[] { idleVehicle.Id, unclaimedVehicle.Id });
+    }
+
+    [Fact]
+    public async Task GivenAnUnclaimedVehicle_WhenGetAvailableVehiclesHandled_ThenDtoContainsIdRegistrationAndEquipment()
     {
         // Arrange
         var dealerId = Guid.NewGuid();
@@ -83,15 +133,10 @@ public class GetAvailableVehiclesQueryHandlerTests
                 new() { VehicleId = vehicleId, EquipmentType = EquipmentType.ElectricalDiagnosticKit }
             }
         };
-
-        _vehicleRepositoryMock
-            .Setup(r => r.GetUnclaimedByDealerIdAsync(dealerId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Vehicle> { vehicle });
-
-        var query = new GetAvailableVehiclesQuery(dealerId);
+        SetupVehicles(dealerId, vehicle);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(new GetAvailableVehiclesQuery(dealerId), CancellationToken.None);
 
         // Assert
         result.Should().HaveCount(1);

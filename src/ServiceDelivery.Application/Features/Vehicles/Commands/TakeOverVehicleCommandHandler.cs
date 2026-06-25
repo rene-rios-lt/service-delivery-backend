@@ -43,7 +43,7 @@ public class TakeOverVehicleCommandHandler : IRequestHandler<TakeOverVehicleComm
         if (displacedRepId is not null)
         {
             displacedState = await _repStateRepository.GetByRepIdAsync(displacedRepId.Value, cancellationToken);
-            if (IsRepOnActiveJob(displacedState))
+            if (displacedState is not null && displacedState.IsOnActiveJob())
                 throw new VehicleNotIdleException(
                     $"Vehicle {request.VehicleId} is not idle; its current rep has an active job.");
         }
@@ -155,13 +155,5 @@ public class TakeOverVehicleCommandHandler : IRequestHandler<TakeOverVehicleComm
 
         var isIdleState = state.State is RepState.Available or RepState.Offline;
         return isIdleState && state.ActiveRequestId is null;
-    }
-
-    private static bool IsRepOnActiveJob(RepStateRecord? state)
-    {
-        if (state is null)
-            return false;
-
-        return state.State is RepState.EnRoute or RepState.Within15Miles or RepState.OnSite;
     }
 }
