@@ -17,6 +17,8 @@ dealerId      : Guid
 ```
 id              : Guid
 dealerId        : Guid
+registration    : string  (e.g. "V-001")
+model           : string  (e.g. "Transit 350")
 claimedByRepId  : Guid?   (null = unclaimed)
 claimedAt       : DateTime?
 ```
@@ -156,16 +158,16 @@ Every DTC is covered by at least 2 vehicles. No DTC is unserviceable.
 ### Vehicles (8)
 Each vehicle carries exactly 6 of the 10 equipment types. The combination is designed so common DTCs have broad coverage and specialized DTCs have limited but guaranteed coverage.
 
-| Vehicle | Equipment Types |
-|---------|----------------|
-| V-001 | Hydraulic, Electrical, Braking, Cooling, Transmission, Fuel |
-| V-002 | Hydraulic, Electrical, Braking, Cooling, Powertrain, Exhaust |
-| V-003 | Hydraulic, Electrical, Braking, Cooling, Suspension, Steering |
-| V-004 | Hydraulic, Electrical, Braking, Cooling, Transmission, Powertrain |
-| V-005 | Hydraulic, Electrical, Cooling, Fuel, Transmission, Steering |
-| V-006 | Hydraulic, Electrical, Braking, Exhaust, Suspension, Powertrain |
-| V-007 | Hydraulic, Electrical, Cooling, Fuel, Suspension, Steering |
-| V-008 | Braking, Cooling, Fuel, Exhaust, Suspension, Steering |
+| Vehicle | Model | Equipment Types |
+|---------|-------|----------------|
+| V-001 | Transit 350 | Hydraulic, Electrical, Braking, Cooling, Transmission, Fuel |
+| V-002 | Sprinter 2500 | Hydraulic, Electrical, Braking, Cooling, Powertrain, Exhaust |
+| V-003 | Transit 350 | Hydraulic, Electrical, Braking, Cooling, Suspension, Steering |
+| V-004 | ProMaster 2500 | Hydraulic, Electrical, Braking, Cooling, Transmission, Powertrain |
+| V-005 | Sprinter 2500 | Hydraulic, Electrical, Cooling, Fuel, Transmission, Steering |
+| V-006 | Transit 250 | Hydraulic, Electrical, Braking, Exhaust, Suspension, Powertrain |
+| V-007 | ProMaster 1500 | Hydraulic, Electrical, Cooling, Fuel, Suspension, Steering |
+| V-008 | Transit 350 | Braking, Cooling, Fuel, Exhaust, Suspension, Steering |
 
 ### Users
 **Dispatchers (2)**

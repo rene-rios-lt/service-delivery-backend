@@ -35,6 +35,7 @@ public class GetAvailableVehiclesQueryHandler : IRequestHandler<GetAvailableVehi
             available.Add(new AvailableVehicleDto(
                 vehicle.Id,
                 vehicle.Registration,
+                vehicle.Model,
                 vehicle.Equipment.Select(e => e.EquipmentType.ToString()).ToList()));
         }
 

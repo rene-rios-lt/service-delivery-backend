@@ -116,6 +116,29 @@ public class GetAvailableVehiclesQueryHandlerTests
     }
 
     [Fact]
+    public async Task GivenAnAvailableVehicleWithModel_WhenHandled_ThenDtoIncludesModel()
+    {
+        // Arrange
+        var dealerId = Guid.NewGuid();
+        var vehicle = new Vehicle
+        {
+            Id = Guid.NewGuid(),
+            DealerId = dealerId,
+            Registration = "V-001",
+            Model = "Transit 350",
+            ClaimedByRepId = null,
+            Equipment = new List<VehicleEquipment>()
+        };
+        SetupVehicles(dealerId, vehicle);
+
+        // Act
+        var result = await _handler.Handle(new GetAvailableVehiclesQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Should().ContainSingle(v => v.Model == "Transit 350");
+    }
+
+    [Fact]
     public async Task GivenAnUnclaimedVehicle_WhenGetAvailableVehiclesHandled_ThenDtoContainsIdRegistrationAndEquipment()
     {
         // Arrange

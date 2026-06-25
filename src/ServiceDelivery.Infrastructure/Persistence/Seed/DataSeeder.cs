@@ -51,15 +51,15 @@ public class DataSeeder
         // Common DTCs (DTC-001/002/004/005) are covered by 6–7 vehicles; specialized DTCs by 2–3 vehicles.
         var vehicles = new[]
         {
-            BuildVehicle(SeedConstants.Vehicle1Id, "V-001", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.TransmissionKit,       EquipmentType.FuelSystemKit),
-            BuildVehicle(SeedConstants.Vehicle2Id, "V-002", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.PowertrainKit,          EquipmentType.ExhaustSystemKit),
-            BuildVehicle(SeedConstants.Vehicle3Id, "V-003", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.SuspensionKit,          EquipmentType.SteeringKit),
-            BuildVehicle(SeedConstants.Vehicle4Id, "V-004", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.TransmissionKit,       EquipmentType.PowertrainKit),
-            BuildVehicle(SeedConstants.Vehicle5Id, "V-005", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.CoolingSystemKit, EquipmentType.FuelSystemKit,    EquipmentType.TransmissionKit,       EquipmentType.SteeringKit),
-            BuildVehicle(SeedConstants.Vehicle6Id, "V-006", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.ExhaustSystemKit, EquipmentType.SuspensionKit,         EquipmentType.PowertrainKit),
-            BuildVehicle(SeedConstants.Vehicle7Id, "V-007", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.CoolingSystemKit, EquipmentType.FuelSystemKit,    EquipmentType.SuspensionKit,         EquipmentType.SteeringKit),
-            BuildVehicle(SeedConstants.Vehicle8Id, "V-008", EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit,     EquipmentType.FuelSystemKit,    EquipmentType.ExhaustSystemKit, EquipmentType.SuspensionKit,         EquipmentType.SteeringKit),
-            BuildDealer2Vehicle(SeedConstants.Dealer2Vehicle1Id, "D2-001", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit),
+            BuildVehicle(SeedConstants.Vehicle1Id, "V-001", "Transit 350", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.TransmissionKit,       EquipmentType.FuelSystemKit),
+            BuildVehicle(SeedConstants.Vehicle2Id, "V-002", "Sprinter 2500", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.PowertrainKit,          EquipmentType.ExhaustSystemKit),
+            BuildVehicle(SeedConstants.Vehicle3Id, "V-003", "Transit 350", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.SuspensionKit,          EquipmentType.SteeringKit),
+            BuildVehicle(SeedConstants.Vehicle4Id, "V-004", "ProMaster 2500", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit, EquipmentType.TransmissionKit,       EquipmentType.PowertrainKit),
+            BuildVehicle(SeedConstants.Vehicle5Id, "V-005", "Sprinter 2500", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.CoolingSystemKit, EquipmentType.FuelSystemKit,    EquipmentType.TransmissionKit,       EquipmentType.SteeringKit),
+            BuildVehicle(SeedConstants.Vehicle6Id, "V-006", "Transit 250", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.BrakingSystemKit, EquipmentType.ExhaustSystemKit, EquipmentType.SuspensionKit,         EquipmentType.PowertrainKit),
+            BuildVehicle(SeedConstants.Vehicle7Id, "V-007", "ProMaster 1500", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit, EquipmentType.CoolingSystemKit, EquipmentType.FuelSystemKit,    EquipmentType.SuspensionKit,         EquipmentType.SteeringKit),
+            BuildVehicle(SeedConstants.Vehicle8Id, "V-008", "Transit 350", EquipmentType.BrakingSystemKit, EquipmentType.CoolingSystemKit,     EquipmentType.FuelSystemKit,    EquipmentType.ExhaustSystemKit, EquipmentType.SuspensionKit,         EquipmentType.SteeringKit),
+            BuildDealer2Vehicle(SeedConstants.Dealer2Vehicle1Id, "D2-001", "Sprinter 2500", EquipmentType.HydraulicTool, EquipmentType.ElectricalDiagnosticKit),
         };
 
         await _context.Vehicles.AddRangeAsync(vehicles);
@@ -108,25 +108,27 @@ public class DataSeeder
         await _context.Users.AddRangeAsync(users);
     }
 
-    private static Vehicle BuildVehicle(Guid id, string registration, params EquipmentType[] equipmentTypes)
+    private static Vehicle BuildVehicle(Guid id, string registration, string model, params EquipmentType[] equipmentTypes)
     {
         var vehicle = new Vehicle
         {
             Id = id,
             DealerId = SeedConstants.DealerId,
             Registration = registration,
+            Model = model,
             Equipment = equipmentTypes.Select(et => new VehicleEquipment { VehicleId = id, EquipmentType = et }).ToList()
         };
         return vehicle;
     }
 
-    private static Vehicle BuildDealer2Vehicle(Guid id, string registration, params EquipmentType[] equipmentTypes)
+    private static Vehicle BuildDealer2Vehicle(Guid id, string registration, string model, params EquipmentType[] equipmentTypes)
     {
         var vehicle = new Vehicle
         {
             Id = id,
             DealerId = SeedConstants.Dealer2Id,
             Registration = registration,
+            Model = model,
             Equipment = equipmentTypes.Select(et => new VehicleEquipment { VehicleId = id, EquipmentType = et }).ToList()
         };
         return vehicle;

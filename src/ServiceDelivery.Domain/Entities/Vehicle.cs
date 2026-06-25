@@ -7,6 +7,7 @@ public class Vehicle
     public Guid? ClaimedByRepId { get; set; }
     public DateTime? ClaimedAt { get; set; }
     public string Registration { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
     public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
     public double? LastLatitude { get; set; }

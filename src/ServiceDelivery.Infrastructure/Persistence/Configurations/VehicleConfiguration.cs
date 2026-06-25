@@ -11,6 +11,7 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.ToTable("Vehicles");
         builder.HasKey(v => v.Id);
         builder.Property(v => v.Registration).IsRequired().HasMaxLength(20);
+        builder.Property(v => v.Model).IsRequired().HasMaxLength(50);
         builder.Property(v => v.ClaimedByRepId).IsRequired(false);
         builder.Property(v => v.ClaimedAt).IsRequired(false);
         builder.Property(v => v.LastLatitude).IsRequired(false);
