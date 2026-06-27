@@ -79,6 +79,7 @@ Vehicle position remains **simulator-pushed**, never backend-derived. After take
 | POST | `/rep/arrive` | Mark "I've Arrived" — transitions to On Site | ServiceRep |
 | POST | `/rep/complete` | Mark job complete — transitions to Available | ServiceRep |
 | POST | `/rep/heartbeat` | Liveness ping from a human-controlled device (~15s interval) | ServiceRep |
+| GET | `/rep/active-job-state` | Get the rep's active job for the navigation screen (`/rep/job`). Response: `requestId`, `requesterName`, `dtcTitle`, `requesterLat`/`requesterLng`, `repLat`/`repLng` (the rep's claimed-vehicle position), `etaMinutes` and `distanceMiles` (Haversine rep→requester, server-computed; both 0 when On Site), `tier`, `repState` (EnRoute/Within15Miles/OnSite). 404 when the rep has no active job. This is the purpose-built rep active-job projection — distinct from the Requester's `/service-requests/my-active`. | ServiceRep |
 
 `accept`, `decline`, `arrive`, and `complete` behave identically for simulator-operated and human-controlled reps. A `humanControlled` boolean travels on every rep/fleet-state payload (`GET /dispatcher/fleet`, `GET /simulator/fleet-state`, `RepStateChanged`) so clients and the simulator can tell which reps are under human control.
 
@@ -157,7 +158,7 @@ The simulator pushes positions via REST — it is not a SignalR publisher. The b
 | Event (server → client) | Payload | Trigger |
 |--------------------------|---------|---------|
 | `JobOfferReceived` | `{ offerId, requestId, requesterName, requesterTier, dtcTitle, latitude, longitude, distanceMiles, etaMinutes }` | New offer sent to rep |
-| `JobOfferExpired` | `{ offerId }` | 60-second timeout reached |
+| `JobOfferExpired` | `{ offerId }` | Offer-expiry timeout reached (default 60s; configurable via `JobOfferExpiry:OfferExpirySeconds` — e.g. shortened for the Appium E2E run) |
 | `RedirectReceived` | `{ newRequestId, requesterName, requesterTier, dtcTitle, latitude, longitude, distanceMiles, etaMinutes }` | Dispatcher hard-redirected this rep |
 
 ---
