@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using ServiceDelivery.Api.BackgroundServices;
 using ServiceDelivery.Api.Hubs;
 using ServiceDelivery.Api.Services;
+using ServiceDelivery.Application.Common;
 using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Application.Common.Services;
 using ServiceDelivery.Application.Features.Auth.Commands;
@@ -70,6 +71,15 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 // Job offer expiry background sweep (first hosted service in the codebase — see plan D1)
 builder.Services.Configure<JobOfferExpiryOptions>(builder.Configuration.GetSection("JobOfferExpiry"));
 builder.Services.AddHostedService<ExpireJobOffersBackgroundService>();
+
+// Offer expiry window for newly-created offers (BUG-040). MatchingOptions is a plain Application-layer
+// class (Application has no IOptions dependency), bound from the same "JobOfferExpiry" section and
+// registered as a singleton for direct injection into MatchingService — mirrors the HeartbeatTimeoutSettings
+// / RedirectOptions pattern below. Defaults to 60s when "JobOfferExpiry:OfferExpirySeconds" is absent so
+// production behaviour is unchanged; Local/Appium runs override it via JobOfferExpiry__OfferExpirySeconds.
+var matchingOptions = builder.Configuration.GetSection("JobOfferExpiry").Get<MatchingOptions>()
+    ?? new MatchingOptions();
+builder.Services.AddSingleton(matchingOptions);
 
 // Orphaned pending-request reconciler — periodic backstop that re-matches Pending requests left
 // with no Pending offer (mirrors the BE-018 hosted-service pattern; see plan BE-029).

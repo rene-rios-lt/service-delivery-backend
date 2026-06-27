@@ -9,8 +9,6 @@ namespace ServiceDelivery.Application.Common.Services;
 
 public class MatchingService : IMatchingService
 {
-    private const int OfferExpirySeconds = 60;
-
     private readonly IServiceRequestRepository _requests;
     private readonly IDiagnosticTroubleCodeRepository _dtcs;
     private readonly IRepStateRepository _repStates;
@@ -18,6 +16,7 @@ public class MatchingService : IMatchingService
     private readonly IUserRepository _users;
     private readonly IRepHubService _repHub;
     private readonly IDispatchHubService _dispatchHub;
+    private readonly int _offerExpirySeconds;
 
     public MatchingService(
         IServiceRequestRepository requests,
@@ -26,7 +25,8 @@ public class MatchingService : IMatchingService
         IJobOfferRepository jobOffers,
         IUserRepository users,
         IRepHubService repHub,
-        IDispatchHubService dispatchHub)
+        IDispatchHubService dispatchHub,
+        MatchingOptions options)
     {
         _requests = requests;
         _dtcs = dtcs;
@@ -35,6 +35,7 @@ public class MatchingService : IMatchingService
         _users = users;
         _repHub = repHub;
         _dispatchHub = dispatchHub;
+        _offerExpirySeconds = options.OfferExpirySeconds;
     }
 
     public async Task RunAsync(Guid requestId, CancellationToken cancellationToken = default)
@@ -75,7 +76,7 @@ public class MatchingService : IMatchingService
             ServiceRequestId = request.Id,
             RepId = winner.RepId,
             OfferedAt = now,
-            ExpiresAt = now.AddSeconds(OfferExpirySeconds),
+            ExpiresAt = now.AddSeconds(_offerExpirySeconds),
             Status = JobOfferStatus.Pending
         };
         await _jobOffers.AddAsync(offer, cancellationToken);
