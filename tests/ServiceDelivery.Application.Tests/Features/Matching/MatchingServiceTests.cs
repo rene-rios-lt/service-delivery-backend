@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using ServiceDelivery.Application.Common;
 using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Application.Common.Interfaces.Payloads;
 using ServiceDelivery.Application.Common.Services;
@@ -25,14 +26,15 @@ public class MatchingServiceTests
     private static readonly Guid DtcId = Guid.NewGuid();
     private static readonly Guid RequesterId = Guid.NewGuid();
 
-    private MatchingService CreateService() => new(
+    private MatchingService CreateService(int offerExpirySeconds = 60) => new(
         _requests.Object,
         _dtcs.Object,
         _repStates.Object,
         _jobOffers.Object,
         _users.Object,
         _repHub.Object,
-        _dispatchHub.Object);
+        _dispatchHub.Object,
+        new MatchingOptions { OfferExpirySeconds = offerExpirySeconds });
 
     private ServiceRequest BuildRequest(Guid? id = null, double lat = 10.0, double lng = 10.0)
         => new()
@@ -360,6 +362,66 @@ public class MatchingServiceTests
                 && p.RequesterTier == "Gold"
                 && p.DtcTitle == "Hydraulic system fault"),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenOfferExpirySecondsConfigured_WhenOfferCreated_ThenExpiresAtReflectsConfiguredValue()
+    {
+        // Arrange
+        const int ConfiguredExpirySeconds = 5;
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        JobOffer? captured = null;
+        _jobOffers.Setup(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()))
+            .Callback<JobOffer, CancellationToken>((o, _) => captured = o)
+            .Returns(Task.CompletedTask);
+        var service = CreateService(offerExpirySeconds: ConfiguredExpirySeconds);
+
+        // Act
+        var before = DateTime.UtcNow;
+        await service.RunAsync(request.Id);
+        var after = DateTime.UtcNow;
+
+        // Assert
+        captured.Should().NotBeNull();
+        captured!.ExpiresAt.Should().BeOnOrAfter(before.AddSeconds(ConfiguredExpirySeconds));
+        captured.ExpiresAt.Should().BeOnOrBefore(after.AddSeconds(ConfiguredExpirySeconds));
+    }
+
+    [Fact]
+    public async Task GivenDefaultOfferExpirySeconds_WhenOfferCreated_ThenExpiresAtIsSixtySecondsAhead()
+    {
+        // Arrange
+        const int DefaultExpirySeconds = 60;
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        JobOffer? captured = null;
+        _jobOffers.Setup(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()))
+            .Callback<JobOffer, CancellationToken>((o, _) => captured = o)
+            .Returns(Task.CompletedTask);
+        var service = CreateService();
+
+        // Act
+        var before = DateTime.UtcNow;
+        await service.RunAsync(request.Id);
+        var after = DateTime.UtcNow;
+
+        // Assert
+        captured.Should().NotBeNull();
+        captured!.ExpiresAt.Should().BeOnOrAfter(before.AddSeconds(DefaultExpirySeconds));
+        captured.ExpiresAt.Should().BeOnOrBefore(after.AddSeconds(DefaultExpirySeconds));
     }
 
     [Fact]
