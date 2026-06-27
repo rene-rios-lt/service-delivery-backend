@@ -9,4 +9,6 @@ public record ActiveJobStateDto(
     double RepLat,
     double RepLng,
     int EtaMinutes,
+    double DistanceMiles,
+    string Tier,
     string RepState);

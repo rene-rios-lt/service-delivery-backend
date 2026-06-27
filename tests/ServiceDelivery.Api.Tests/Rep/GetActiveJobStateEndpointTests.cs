@@ -79,8 +79,8 @@ public class GetActiveJobStateEndpointTests
         await using var factory = new CustomWebApplicationFactory();
         var requestId = await SeedActiveJobAsync(factory, SeedConstants.Rep1Id, SeedConstants.Vehicle1Id);
         var client = await AuthedClientAsync(factory, "rep1@dealer.com");
-        var expectedEta = (int)Math.Round(HaversineCalculator.EtaMinutes(
-            HaversineCalculator.DistanceMiles(RepLat, RepLng, RequesterLat, RequesterLng)));
+        var expectedDistance = HaversineCalculator.DistanceMiles(RepLat, RepLng, RequesterLat, RequesterLng);
+        var expectedEta = (int)Math.Round(HaversineCalculator.EtaMinutes(expectedDistance));
 
         // Act
         var response = await client.GetAsync("/rep/active-job-state");
@@ -97,6 +97,8 @@ public class GetActiveJobStateEndpointTests
         result.RepLat.Should().Be(RepLat);
         result.RepLng.Should().Be(RepLng);
         result.EtaMinutes.Should().Be(expectedEta);
+        result.DistanceMiles.Should().BeApproximately(expectedDistance, 0.0001);
+        result.Tier.Should().Be("Gold");
         result.RepState.Should().Be("EnRoute");
     }
 

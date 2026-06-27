@@ -89,6 +89,49 @@ public class GetActiveJobStateQueryHandlerTests
     }
 
     [Fact]
+    public async Task GivenARepEnRoute_WhenGetActiveJobStateHandled_ThenDistanceMilesEqualsHaversineDistance()
+    {
+        // Arrange
+        SetupHappyPath(repState: RepState.EnRoute);
+        var expectedDistance = HaversineCalculator.DistanceMiles(RepLat, RepLng, RequesterLat, RequesterLng);
+
+        // Act
+        var result = await _handler.Handle(Query(), CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.DistanceMiles.Should().BeApproximately(expectedDistance, 0.0001);
+    }
+
+    [Fact]
+    public async Task GivenARepOnSite_WhenGetActiveJobStateHandled_ThenDistanceMilesIsZero()
+    {
+        // Arrange
+        SetupHappyPath(repState: RepState.OnSite);
+
+        // Act
+        var result = await _handler.Handle(Query(), CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.DistanceMiles.Should().Be(0.0);
+    }
+
+    [Fact]
+    public async Task GivenAGoldTierRequest_WhenGetActiveJobStateHandled_ThenTierIsMappedFromServiceRequest()
+    {
+        // Arrange
+        SetupHappyPath();
+
+        // Act
+        var result = await _handler.Handle(Query(), CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Tier.Should().Be(ServiceTier.Gold.ToString());
+    }
+
+    [Fact]
     public async Task GivenARepEnRoute_WhenGetActiveJobStateHandled_ThenEtaMinutesIsCalculatedFromDistance()
     {
         // Arrange

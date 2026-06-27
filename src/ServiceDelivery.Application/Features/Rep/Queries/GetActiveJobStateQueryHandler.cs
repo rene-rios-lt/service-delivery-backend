@@ -43,10 +43,14 @@ public class GetActiveJobStateQueryHandler
         var repLng = vehicle?.LastLongitude ?? 0.0;
         var state = repState?.State ?? RepState.Offline;
 
+        var distanceMiles = HaversineCalculator.DistanceMiles(
+            repLat, repLng, serviceRequest.Latitude, serviceRequest.Longitude);
+
         var etaMinutes = state == RepState.OnSite
             ? 0
-            : (int)Math.Round(HaversineCalculator.EtaMinutes(
-                HaversineCalculator.DistanceMiles(repLat, repLng, serviceRequest.Latitude, serviceRequest.Longitude)));
+            : (int)Math.Round(HaversineCalculator.EtaMinutes(distanceMiles));
+
+        var reportedDistance = state == RepState.OnSite ? 0.0 : distanceMiles;
 
         return new ActiveJobStateDto(
             serviceRequest.Id,
@@ -57,6 +61,8 @@ public class GetActiveJobStateQueryHandler
             repLat,
             repLng,
             etaMinutes,
+            reportedDistance,
+            serviceRequest.Tier.ToString(),
             state.ToString());
     }
 }
