@@ -6,8 +6,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- QUAL-006 / ADR-0011: contracts/openapi.json is the committed source of truth for the REST
+       wire contract. Generation is OFF by default on build (OnBuild=false) so an ordinary build
+       does NOT silently rewrite the committed doc — that keeps OpenApiContractTests' sync-check
+       honest (it compares the live document to the committed one; a build that regenerated first
+       would make the check pass vacuously). Regenerate explicitly with scripts/regen-openapi.sh
+       (which passes /p:OpenApiGenerateDocumentsOnBuild=true). -->
+  <PropertyGroup>
+    <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+    <OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)/../../contracts</OpenApiDocumentsDirectory>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0">
+      <IncludeAssets>build</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
@@ -21,5 +37,14 @@
     <ProjectReference Include="..\ServiceDelivery.Application\ServiceDelivery.Application.csproj" />
     <ProjectReference Include="..\ServiceDelivery.Infrastructure\ServiceDelivery.Infrastructure.csproj" />
   </ItemGroup>
+
+  <!-- The generator names the file after the assembly (ServiceDelivery.Api.json); rename it
+       to the canonical contracts/openapi.json (ADR-0011) so the source-of-truth path is obvious. -->
+  <Target Name="RenameOpenApiDocumentToCanonical" AfterTargets="GenerateOpenApiDocuments"
+          Condition="Exists('$(OpenApiDocumentsDirectory)/ServiceDelivery.Api.json')">
+    <Move SourceFiles="$(OpenApiDocumentsDirectory)/ServiceDelivery.Api.json"
+          DestinationFiles="$(OpenApiDocumentsDirectory)/openapi.json"
+          OverwriteReadOnlyFiles="true" />
+  </Target>
 
 </Project>
