@@ -26,4 +26,11 @@
     <ProjectReference Include="..\..\src\ServiceDelivery.Api\ServiceDelivery.Api.csproj" />
   </ItemGroup>
 
+  <!-- Make the committed wire contract available to OpenApiContractTests' sync-check (ADR-0011). -->
+  <ItemGroup>
+    <Content Include="..\..\contracts\openapi.json" Link="contracts\openapi.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
