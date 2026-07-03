@@ -134,7 +134,7 @@ public class HubAuthTests
         await HubTestHelpers.WaitForReadyAsync(req2Connection);
 
         var repId = SeedConstants.Rep3Id;
-        var payload = new RepAssignedPayload(repId, "Rep Three", 10.0, 40.7128, -74.0060);
+        var payload = new RepAssignedPayload(repId, "Rep Three", 10.0, 40.7128, -74.0060, "V-003");
         var requester1Group = $"requester:{SeedConstants.Bronze1Id}";
 
         // Act

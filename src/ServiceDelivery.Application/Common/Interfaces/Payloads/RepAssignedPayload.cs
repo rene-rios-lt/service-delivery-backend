@@ -5,4 +5,5 @@ public record RepAssignedPayload(
     string RepName,
     double EtaMinutes,
     double Latitude,
-    double Longitude);
+    double Longitude,
+    string VehicleRegistration);

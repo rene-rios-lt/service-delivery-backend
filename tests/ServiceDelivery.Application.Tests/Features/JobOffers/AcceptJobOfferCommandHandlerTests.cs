@@ -89,7 +89,7 @@ public class AcceptJobOfferCommandHandlerTests
         if (withVehiclePosition)
         {
             _vehicleRepository.Setup(r => r.GetByClaimedRepIdAsync(RepId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Vehicle { Id = Guid.NewGuid(), ClaimedByRepId = RepId, LastLatitude = 41.5, LastLongitude = -93.6 });
+                .ReturnsAsync(new Vehicle { Id = Guid.NewGuid(), ClaimedByRepId = RepId, Registration = "V-001", LastLatitude = 41.5, LastLongitude = -93.6 });
         }
         else
         {
@@ -185,6 +185,38 @@ public class AcceptJobOfferCommandHandlerTests
                                            && Math.Abs(p.EtaMinutes - expectedEta) < 0.0001
                                            && p.Latitude == 41.5
                                            && p.Longitude == -93.6),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWithAClaimedVehicle_WhenOfferAccepted_ThenRepAssignedPayloadCarriesVehicleRegistration()
+    {
+        // Arrange
+        SetupHappyPath();
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _requesterHub.Verify(h => h.SendRepAssignedAsync(
+            $"requester:{RequesterId}",
+            It.Is<RepAssignedPayload>(p => p.VehicleRegistration == "V-001"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWithNoClaimedVehicle_WhenOfferAccepted_ThenRepAssignedVehicleRegistrationIsEmptyString()
+    {
+        // Arrange
+        SetupHappyPath(withVehiclePosition: false);
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _requesterHub.Verify(h => h.SendRepAssignedAsync(
+            $"requester:{RequesterId}",
+            It.Is<RepAssignedPayload>(p => p.VehicleRegistration == string.Empty),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
