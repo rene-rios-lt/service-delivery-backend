@@ -104,11 +104,12 @@ public class AcceptJobOfferCommandHandler
         var rep = await _userRepository.FindByIdAsync(offer.RepId, cancellationToken);
         var repName = rep?.Name ?? string.Empty;
 
-        var (etaMinutes, latitude, longitude) = await ComputeEtaAndPositionAsync(offer.RepId, serviceRequest, cancellationToken);
+        var (etaMinutes, latitude, longitude, vehicleRegistration) =
+            await ComputeEtaAndPositionAsync(offer.RepId, serviceRequest, cancellationToken);
 
         await _requesterHub.SendRepAssignedAsync(
             $"requester:{serviceRequest.RequesterId}",
-            new RepAssignedPayload(offer.RepId, repName, etaMinutes, latitude, longitude),
+            new RepAssignedPayload(offer.RepId, repName, etaMinutes, latitude, longitude, vehicleRegistration),
             cancellationToken);
 
         await _dispatchHub.SendServiceRequestAssignedAsync(
@@ -124,19 +125,21 @@ public class AcceptJobOfferCommandHandler
         return etaMinutes;
     }
 
-    private async Task<(double EtaMinutes, double Latitude, double Longitude)> ComputeEtaAndPositionAsync(
+    private async Task<(double EtaMinutes, double Latitude, double Longitude, string VehicleRegistration)> ComputeEtaAndPositionAsync(
         Guid repId,
         ServiceRequest serviceRequest,
         CancellationToken cancellationToken)
     {
         var vehicle = await _vehicleRepository.GetByClaimedRepIdAsync(repId, cancellationToken);
+        var registration = vehicle?.Registration ?? string.Empty;
+
         if (vehicle is not { LastLatitude: not null, LastLongitude: not null })
-            return (0, 0, 0);
+            return (0, 0, 0, registration);
 
         var distanceMiles = HaversineCalculator.DistanceMiles(
             vehicle.LastLatitude.Value, vehicle.LastLongitude.Value,
             serviceRequest.Latitude, serviceRequest.Longitude);
 
-        return (HaversineCalculator.EtaMinutes(distanceMiles), vehicle.LastLatitude.Value, vehicle.LastLongitude.Value);
+        return (HaversineCalculator.EtaMinutes(distanceMiles), vehicle.LastLatitude.Value, vehicle.LastLongitude.Value, registration);
     }
 }

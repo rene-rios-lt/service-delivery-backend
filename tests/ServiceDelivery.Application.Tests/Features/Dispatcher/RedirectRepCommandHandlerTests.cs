@@ -112,7 +112,7 @@ public class RedirectRepCommandHandlerTests
         _repStateRepository.Setup(r => r.GetByRepIdAsync(RepId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(repStateRecord);
         _vehicleRepository.Setup(r => r.GetByClaimedRepIdAsync(RepId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Vehicle { Id = Guid.NewGuid(), ClaimedByRepId = RepId, LastLatitude = vehicleLat, LastLongitude = vehicleLng });
+            .ReturnsAsync(new Vehicle { Id = Guid.NewGuid(), ClaimedByRepId = RepId, Registration = "V-001", LastLatitude = vehicleLat, LastLongitude = vehicleLng });
         _userRepository.Setup(r => r.FindByIdAsync(ToRequesterId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new User { Id = ToRequesterId, Name = "Gold Requester", Tier = toTier });
         _userRepository.Setup(r => r.FindByIdAsync(RepId, It.IsAny<CancellationToken>()))
@@ -339,6 +339,40 @@ public class RedirectRepCommandHandlerTests
         _requesterHub.Verify(h => h.SendRepAssignedAsync(
             $"requester:{ToRequesterId}",
             It.Is<RepAssignedPayload>(p => p.RepId == RepId && p.RepName == "Rep One"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWithAClaimedVehicle_WhenRedirected_ThenRepAssignedPayloadCarriesVehicleRegistration()
+    {
+        // Arrange
+        Setup();
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _requesterHub.Verify(h => h.SendRepAssignedAsync(
+            $"requester:{ToRequesterId}",
+            It.Is<RepAssignedPayload>(p => p.VehicleRegistration == "V-001"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWithNoClaimedVehicle_WhenRedirected_ThenRepAssignedVehicleRegistrationIsEmptyString()
+    {
+        // Arrange
+        Setup();
+        _vehicleRepository.Setup(r => r.GetByClaimedRepIdAsync(RepId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Vehicle?)null);
+
+        // Act
+        await _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        _requesterHub.Verify(h => h.SendRepAssignedAsync(
+            $"requester:{ToRequesterId}",
+            It.Is<RepAssignedPayload>(p => p.VehicleRegistration == string.Empty),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

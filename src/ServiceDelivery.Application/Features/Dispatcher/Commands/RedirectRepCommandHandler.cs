@@ -165,7 +165,7 @@ public class RedirectRepCommandHandler
 
         await _requesterHub.SendRepAssignedAsync(
             $"requester:{newRequest.RequesterId}",
-            new RepAssignedPayload(request.RepId, rep?.Name ?? string.Empty, etaMinutes, latitude, longitude),
+            new RepAssignedPayload(request.RepId, rep?.Name ?? string.Empty, etaMinutes, latitude, longitude, vehicle?.Registration ?? string.Empty),
             cancellationToken);
 
         var stateName = RepState.EnRoute.ToString();
