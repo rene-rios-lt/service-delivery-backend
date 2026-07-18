@@ -13,6 +13,7 @@ public record DispatcherFleetEntryDto(
     LastPositionDto? LastPosition,
     Guid? ActiveRequestId,
     string? ActiveRequestTier,
+    string? ActiveRequestTitle,
     bool HumanControlled);
 
 public record LastPositionDto(double Lat, double Lng);
