@@ -12,5 +12,6 @@ public record DispatcherFleetEntry(
     double? LastLatitude,
     double? LastLongitude,
     Guid? ActiveRequestId,
-    ServiceTier? ActiveRequestTier
+    ServiceTier? ActiveRequestTier,
+    string? ActiveRequestTitle
 );

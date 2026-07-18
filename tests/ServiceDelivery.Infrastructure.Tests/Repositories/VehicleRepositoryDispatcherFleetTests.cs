@@ -82,6 +82,117 @@ public class VehicleRepositoryDispatcherFleetTests
     }
 
     [Fact]
+    public async Task GivenAClaimedRepWithActiveRequestAndDtc_WhenGetDispatcherFleetByDealer_ThenActiveRequestTitleEqualsHumanReadableDtcTitle()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var requestId = Guid.NewGuid();
+        var dtcId = Guid.NewGuid();
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            DealerId = dealerId,
+            Registration = "V-001",
+            ClaimedByRepId = repId,
+            LastLatitude = 41.5,
+            LastLongitude = -93.6
+        });
+        context.Users.Add(new User
+        {
+            Id = repId,
+            Name = "Riley Rep",
+            Email = "riley@dealer.com",
+            Role = UserRole.ServiceRep,
+            DealerId = dealerId
+        });
+        context.RepStateRecords.Add(new RepStateRecord
+        {
+            RepId = repId,
+            State = RepState.EnRoute,
+            HumanControlled = true,
+            ActiveRequestId = requestId
+        });
+        context.DiagnosticTroubleCodes.Add(new DiagnosticTroubleCode
+        {
+            Id = dtcId,
+            DealerId = dealerId,
+            Code = "DTC-001",
+            HumanReadableTitle = "Hydraulic system fault",
+            RequiredEquipmentType = EquipmentType.HydraulicTool
+        });
+        context.ServiceRequests.Add(new ServiceRequest
+        {
+            Id = requestId,
+            DealerId = dealerId,
+            DtcId = dtcId,
+            Tier = ServiceTier.Gold,
+            Status = ServiceRequestStatus.Assigned,
+            AssignedRepId = repId
+        });
+        await context.SaveChangesAsync();
+
+        var repository = new VehicleRepository(context);
+
+        // Act
+        var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
+
+        // Assert
+        result.Should().HaveCount(1);
+        var row = result[0];
+        row.ActiveRequestId.Should().Be(requestId);
+        row.ActiveRequestTitle.Should().Be("Hydraulic system fault");
+    }
+
+    [Fact]
+    public async Task GivenAClaimedRepWithNoActiveRequest_WhenGetDispatcherFleetByDealer_ThenActiveRequestTitleIsNull()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            DealerId = dealerId,
+            Registration = "V-001",
+            ClaimedByRepId = repId,
+            LastLatitude = 10.0,
+            LastLongitude = 20.0
+        });
+        context.Users.Add(new User
+        {
+            Id = repId,
+            Name = "Riley Rep",
+            Email = "riley@dealer.com",
+            Role = UserRole.ServiceRep,
+            DealerId = dealerId
+        });
+        context.RepStateRecords.Add(new RepStateRecord
+        {
+            RepId = repId,
+            State = RepState.Available,
+            HumanControlled = false,
+            ActiveRequestId = null
+        });
+        await context.SaveChangesAsync();
+
+        var repository = new VehicleRepository(context);
+
+        // Act
+        var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].ActiveRequestTitle.Should().BeNull();
+    }
+
+    [Fact]
     public async Task GivenAClaimedIdleRep_WhenGetDispatcherFleetByDealer_ThenActiveRequestFieldsAreNull()
     {
         // Arrange

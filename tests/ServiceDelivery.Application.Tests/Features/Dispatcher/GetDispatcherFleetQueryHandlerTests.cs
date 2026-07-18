@@ -26,7 +26,7 @@ public class GetDispatcherFleetQueryHandlerTests
         var ownVehicleId = Guid.NewGuid();
         var entries = new List<DispatcherFleetEntry>
         {
-            new(ownVehicleId, "V-001", null, null, null, false, null, null, null, null),
+            new(ownVehicleId, "V-001", null, null, null, false, null, null, null, null, null),
         };
         _vehicleRepositoryMock
             .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
@@ -52,7 +52,7 @@ public class GetDispatcherFleetQueryHandlerTests
         var requestId = Guid.NewGuid();
         var entries = new List<DispatcherFleetEntry>
         {
-            new(vehicleId, "V-001", repId, "Riley Rep", RepState.EnRoute, false, 41.5, -93.6, requestId, ServiceTier.Gold),
+            new(vehicleId, "V-001", repId, "Riley Rep", RepState.EnRoute, false, 41.5, -93.6, requestId, ServiceTier.Gold, null),
         };
         _vehicleRepositoryMock
             .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
@@ -84,7 +84,7 @@ public class GetDispatcherFleetQueryHandlerTests
         var vehicleId = Guid.NewGuid();
         var entries = new List<DispatcherFleetEntry>
         {
-            new(vehicleId, "V-002", null, null, null, false, 10.0, 20.0, null, null),
+            new(vehicleId, "V-002", null, null, null, false, 10.0, 20.0, null, null, null),
         };
         _vehicleRepositoryMock
             .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
@@ -111,7 +111,7 @@ public class GetDispatcherFleetQueryHandlerTests
         var dealerId = Guid.NewGuid();
         var entries = new List<DispatcherFleetEntry>
         {
-            new(Guid.NewGuid(), "V-003", Guid.NewGuid(), "Riley Rep", RepState.Available, false, null, null, null, null),
+            new(Guid.NewGuid(), "V-003", Guid.NewGuid(), "Riley Rep", RepState.Available, false, null, null, null, null, null),
         };
         _vehicleRepositoryMock
             .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
@@ -132,7 +132,7 @@ public class GetDispatcherFleetQueryHandlerTests
         var dealerId = Guid.NewGuid();
         var entries = new List<DispatcherFleetEntry>
         {
-            new(Guid.NewGuid(), "V-004", Guid.NewGuid(), "Riley Rep", RepState.Available, false, 1.0, 2.0, null, null),
+            new(Guid.NewGuid(), "V-004", Guid.NewGuid(), "Riley Rep", RepState.Available, false, 1.0, 2.0, null, null, null),
         };
         _vehicleRepositoryMock
             .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
@@ -148,13 +148,55 @@ public class GetDispatcherFleetQueryHandlerTests
     }
 
     [Fact]
+    public async Task GivenADomainEntryWithActiveRequestTitle_WhenGetDispatcherFleetHandled_ThenDtoContainsActiveRequestTitle()
+    {
+        // Arrange
+        var dealerId = Guid.NewGuid();
+        var entries = new List<DispatcherFleetEntry>
+        {
+            new(Guid.NewGuid(), "V-006", Guid.NewGuid(), "Riley Rep", RepState.EnRoute, false, 1.0, 2.0, Guid.NewGuid(), ServiceTier.Gold, "Hydraulic system fault"),
+        };
+        _vehicleRepositoryMock
+            .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entries);
+
+        // Act
+        var result = await _handler.Handle(new GetDispatcherFleetQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].ActiveRequestTitle.Should().Be("Hydraulic system fault");
+    }
+
+    [Fact]
+    public async Task GivenADomainEntryWithNoActiveRequest_WhenGetDispatcherFleetHandled_ThenDtoActiveRequestTitleIsNull()
+    {
+        // Arrange
+        var dealerId = Guid.NewGuid();
+        var entries = new List<DispatcherFleetEntry>
+        {
+            new(Guid.NewGuid(), "V-007", Guid.NewGuid(), "Riley Rep", RepState.Available, false, 1.0, 2.0, null, null, null),
+        };
+        _vehicleRepositoryMock
+            .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entries);
+
+        // Act
+        var result = await _handler.Handle(new GetDispatcherFleetQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].ActiveRequestTitle.Should().BeNull();
+    }
+
+    [Fact]
     public async Task GivenAHumanControlledRep_WhenGetDispatcherFleetHandled_ThenHumanControlledIsTrue()
     {
         // Arrange
         var dealerId = Guid.NewGuid();
         var entries = new List<DispatcherFleetEntry>
         {
-            new(Guid.NewGuid(), "V-005", Guid.NewGuid(), "Riley Rep", RepState.OnSite, true, 1.0, 2.0, Guid.NewGuid(), ServiceTier.Silver),
+            new(Guid.NewGuid(), "V-005", Guid.NewGuid(), "Riley Rep", RepState.OnSite, true, 1.0, 2.0, Guid.NewGuid(), ServiceTier.Silver, null),
         };
         _vehicleRepositoryMock
             .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))

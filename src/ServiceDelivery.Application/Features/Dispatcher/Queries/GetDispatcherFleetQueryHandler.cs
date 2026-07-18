@@ -37,6 +37,7 @@ public class GetDispatcherFleetQueryHandler
                 lastPosition,
                 e.ActiveRequestId,
                 e.ActiveRequestTier?.ToString(),
+                e.ActiveRequestTitle,
                 e.HumanControlled);
         }).ToList();
     }

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceDelivery.Application.Features.Auth.Commands;
@@ -21,6 +22,7 @@ public class GetDispatcherFleetEndpointTests
         LastPositionResponse? LastPosition,
         Guid? ActiveRequestId,
         string? ActiveRequestTier,
+        string? ActiveRequestTitle,
         bool HumanControlled);
 
     private record LastPositionResponse(double Lat, double Lng);
@@ -201,5 +203,31 @@ public class GetDispatcherFleetEndpointTests
         dto.ActiveRequestId.Should().Be(requestId);
         dto.ActiveRequestTier.Should().Be("Gold");
         dto.HumanControlled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GivenAnAssignedRepWithActiveDtcRequest_WhenGetFleetCalledAsDispatcher_ThenResponseContainsActiveRequestTitleOnWire()
+    {
+        // Arrange — ClaimVehicleWithActiveRequestAsync seeds the request with DtcId = Dtc001Id,
+        // which DataSeeder seeds with HumanReadableTitle = "Hydraulic system fault".
+        await using var factory = new CustomWebApplicationFactory();
+        var requestId = Guid.NewGuid();
+        await ClaimVehicleWithActiveRequestAsync(
+            factory, SeedConstants.Vehicle1Id, SeedConstants.Rep1Id,
+            RepState.EnRoute, true, requestId, 41.5, -93.6);
+        var client = await CreateAuthenticatedClientAsync(factory, "alex@dealer.com");
+
+        // Act
+        var response = await client.GetAsync("/dispatcher/fleet");
+        var rawJson = await response.Content.ReadAsStringAsync();
+
+        // Assert — parse the raw payload (not the deserialised DTO) so a wire-field rename is caught.
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var entries = JsonNode.Parse(rawJson)!.AsArray();
+        var entry = entries.Single(
+            e => (Guid)e!["vehicleId"]!.GetValue<Guid>() == SeedConstants.Vehicle1Id);
+        entry!["activeRequestTitle"].Should().NotBeNull(
+            "the wire field must be serialised as camelCase 'activeRequestTitle'");
+        entry["activeRequestTitle"]!.GetValue<string>().Should().Be("Hydraulic system fault");
     }
 }

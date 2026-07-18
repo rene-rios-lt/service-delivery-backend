@@ -81,7 +81,14 @@ public class VehicleRepository : IVehicleRepository
                 (x, requests) => new { x.Vehicle, x.State, x.User, Requests = requests })
             .SelectMany(
                 x => x.Requests.DefaultIfEmpty(),
-                (x, request) => new DispatcherFleetEntry(
+                (x, request) => new { x.Vehicle, x.State, x.User, Request = request })
+            .GroupJoin(_context.DiagnosticTroubleCodes,
+                x => x.Request != null ? (Guid?)x.Request.DtcId : null,
+                dtc => (Guid?)dtc.Id,
+                (x, dtcs) => new { x.Vehicle, x.State, x.User, x.Request, Dtcs = dtcs })
+            .SelectMany(
+                x => x.Dtcs.DefaultIfEmpty(),
+                (x, dtc) => new DispatcherFleetEntry(
                     x.Vehicle.Id,
                     x.Vehicle.Registration,
                     x.Vehicle.ClaimedByRepId,
@@ -90,8 +97,9 @@ public class VehicleRepository : IVehicleRepository
                     x.State != null && x.State.HumanControlled,
                     x.Vehicle.LastLatitude,
                     x.Vehicle.LastLongitude,
-                    request != null ? (Guid?)request.Id : null,
-                    request != null ? (ServiceTier?)request.Tier : null))
+                    x.Request != null ? (Guid?)x.Request.Id : null,
+                    x.Request != null ? (ServiceTier?)x.Request.Tier : null,
+                    dtc != null ? dtc.HumanReadableTitle : null))
             .ToListAsync(cancellationToken);
     }
 
