@@ -20,6 +20,7 @@ public class DtcsController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "ServiceRep,Requester")]
+    [ProducesResponseType<IReadOnlyList<DtcDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDtcs()
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");

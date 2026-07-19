@@ -22,6 +22,7 @@ public class JobOffersController : ControllerBase
 
     [HttpGet("pending")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<PendingJobOfferDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPendingJobOffer()
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -39,6 +40,7 @@ public class JobOffersController : ControllerBase
 
     [HttpPost("{id:guid}/accept")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<AcceptJobOfferResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Accept(Guid id)
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -63,6 +65,7 @@ public class JobOffersController : ControllerBase
 
     [HttpPost("{id:guid}/decline")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<DeclineJobOfferResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Decline(Guid id)
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

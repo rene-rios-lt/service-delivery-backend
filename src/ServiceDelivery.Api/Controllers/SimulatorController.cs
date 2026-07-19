@@ -19,6 +19,7 @@ public class SimulatorController : ControllerBase
     }
 
     [HttpGet("fleet-state")]
+    [ProducesResponseType<IReadOnlyList<FleetStateVehicleDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFleetState()
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");

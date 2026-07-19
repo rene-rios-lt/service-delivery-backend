@@ -24,6 +24,7 @@ public class ServiceRequestsController : ControllerBase
 
     [HttpGet("my-active")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<MyActiveServiceRequestDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyActiveServiceRequest()
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -40,6 +41,7 @@ public class ServiceRequestsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType<ServiceRequestDetailDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetServiceRequestDetail(Guid id)
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");
@@ -69,6 +71,7 @@ public class ServiceRequestsController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Dispatcher")]
+    [ProducesResponseType<IReadOnlyList<ActiveServiceRequestDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetActiveServiceRequests()
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");
@@ -83,6 +86,7 @@ public class ServiceRequestsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Requester")]
+    [ProducesResponseType<SubmitServiceRequestResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> SubmitServiceRequest([FromBody] SubmitServiceRequestBody body)
     {
         var requesterIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -106,6 +110,9 @@ public class ServiceRequestsController : ControllerBase
             Latitude: body.Latitude,
             Longitude: body.Longitude));
 
-        return Ok(new { requestId = result.RequestId, status = result.Status });
+        // QUAL-013: return the typed result directly so [ProducesResponseType<SubmitServiceRequestResult>]
+        // emits a response schema. Wire shape is identical to the former anonymous object — RequestId
+        // and Status serialize to { "requestId": ..., "status": ... } under the camelCase policy.
+        return Ok(result);
     }
 }

@@ -25,6 +25,7 @@ public class VehiclesController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Dispatcher")]
+    [ProducesResponseType<IReadOnlyList<VehicleDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFleet()
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");
@@ -38,6 +39,7 @@ public class VehiclesController : ControllerBase
 
     [HttpGet("available")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<IReadOnlyList<AvailableVehicleDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAvailableVehicles()
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");
@@ -51,6 +53,7 @@ public class VehiclesController : ControllerBase
 
     [HttpPost("{id:guid}/claim")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<ClaimVehicleResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ClaimVehicle(Guid id)
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -79,6 +82,7 @@ public class VehiclesController : ControllerBase
 
     [HttpPost("{id:guid}/force-release")]
     [Authorize(Roles = "Dispatcher")]
+    [ProducesResponseType<ForceReleaseVehicleResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ForceReleaseVehicle(Guid id)
     {
         try
@@ -94,6 +98,7 @@ public class VehiclesController : ControllerBase
 
     [HttpPost("{id:guid}/release")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<ReleaseVehicleResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReleaseVehicle(Guid id)
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -122,6 +127,7 @@ public class VehiclesController : ControllerBase
 
     [HttpPost("{id:guid}/take-over")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<TakeOverVehicleResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> TakeOver(Guid id)
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -154,6 +160,7 @@ public class VehiclesController : ControllerBase
 
     [HttpPost("{id:guid}/position")]
     [Authorize(Roles = "Simulator")]
+    [ProducesResponseType<UpdateVehiclePositionResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateVehiclePosition(Guid id, [FromBody] UpdateVehiclePositionRequest body)
     {
         var simulatorUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

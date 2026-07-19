@@ -32,7 +32,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResult"
+                }
+              }
+            }
           }
         }
       }
@@ -44,7 +61,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispatcherFleetEntryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispatcherFleetEntryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispatcherFleetEntryDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -76,7 +119,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRepResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRepResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRepResult"
+                }
+              }
+            }
           }
         }
       }
@@ -88,7 +148,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DtcDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DtcDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DtcDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -100,7 +186,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingJobOfferDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingJobOfferDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingJobOfferDto"
+                }
+              }
+            }
           }
         }
       }
@@ -123,7 +226,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptJobOfferResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptJobOfferResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptJobOfferResult"
+                }
+              }
+            }
           }
         }
       }
@@ -146,7 +266,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclineJobOfferResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclineJobOfferResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeclineJobOfferResult"
+                }
+              }
+            }
           }
         }
       }
@@ -158,7 +295,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArriveResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArriveResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArriveResult"
+                }
+              }
+            }
           }
         }
       }
@@ -170,7 +324,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveJobStateDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveJobStateDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveJobStateDto"
+                }
+              }
+            }
           }
         }
       }
@@ -182,7 +353,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeartbeatResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeartbeatResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeartbeatResult"
+                }
+              }
+            }
           }
         }
       }
@@ -194,7 +382,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteResult"
+                }
+              }
+            }
           }
         }
       }
@@ -206,7 +411,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyActiveServiceRequestDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyActiveServiceRequestDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyActiveServiceRequestDto"
+                }
+              }
+            }
           }
         }
       }
@@ -229,7 +451,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRequestDetailDto"
+                }
+              }
+            }
           }
         }
       }
@@ -241,7 +480,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActiveServiceRequestDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActiveServiceRequestDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActiveServiceRequestDto"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -271,7 +536,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitServiceRequestResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitServiceRequestResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitServiceRequestResult"
+                }
+              }
+            }
           }
         }
       }
@@ -283,7 +565,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FleetStateVehicleDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FleetStateVehicleDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FleetStateVehicleDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -295,7 +603,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResult"
+                }
+              }
+            }
           }
         }
       }
@@ -307,7 +632,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -319,7 +670,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableVehicleDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableVehicleDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableVehicleDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -342,7 +719,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimVehicleResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimVehicleResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimVehicleResult"
+                }
+              }
+            }
           }
         }
       }
@@ -365,7 +759,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForceReleaseVehicleResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForceReleaseVehicleResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForceReleaseVehicleResult"
+                }
+              }
+            }
           }
         }
       }
@@ -388,7 +799,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseVehicleResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseVehicleResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseVehicleResult"
+                }
+              }
+            }
           }
         }
       }
@@ -411,7 +839,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TakeOverVehicleResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TakeOverVehicleResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TakeOverVehicleResult"
+                }
+              }
+            }
           }
         }
       }
@@ -454,7 +899,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateVehiclePositionResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateVehiclePositionResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateVehiclePositionResult"
+                }
+              }
+            }
           }
         }
       }
@@ -462,6 +924,572 @@
   },
   "components": {
     "schemas": {
+      "AcceptJobOfferResult": {
+        "required": [
+          "offerId",
+          "requestId",
+          "offerStatus",
+          "requestStatus",
+          "repState"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "offerStatus": {
+            "type": "string"
+          },
+          "requestStatus": {
+            "type": "string"
+          },
+          "repState": {
+            "type": "string"
+          }
+        }
+      },
+      "ActiveJobStateDto": {
+        "required": [
+          "requestId",
+          "requesterName",
+          "dtcTitle",
+          "requesterLat",
+          "requesterLng",
+          "repLat",
+          "repLng",
+          "etaMinutes",
+          "distanceMiles",
+          "tier",
+          "repState"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requesterName": {
+            "type": "string"
+          },
+          "dtcTitle": {
+            "type": "string"
+          },
+          "requesterLat": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "requesterLng": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "repLat": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "repLng": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "etaMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "distanceMiles": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "repState": {
+            "type": "string"
+          }
+        }
+      },
+      "ActiveRequestLocationDto": {
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "type": "object",
+        "properties": {
+          "lat": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "lng": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ActiveServiceRequestDto": {
+        "required": [
+          "requestId",
+          "requesterName",
+          "tier",
+          "dtcTitle",
+          "status",
+          "assignedRepId",
+          "assignedRepName",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requesterName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "dtcTitle": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "assignedRepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "assignedRepName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ArriveResult": {
+        "required": [
+          "repId",
+          "requestId",
+          "repState",
+          "requestStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repState": {
+            "type": "string"
+          },
+          "requestStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "AssignedRepDto": {
+        "required": [
+          "repId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "AvailableVehicleDto": {
+        "required": [
+          "vehicleId",
+          "registration",
+          "model",
+          "equipment"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registration": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ClaimVehicleResult": {
+        "required": [
+          "vehicleId",
+          "repId",
+          "claimedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "claimedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CompleteResult": {
+        "required": [
+          "repId",
+          "requestId",
+          "repState",
+          "requestStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repState": {
+            "type": "string"
+          },
+          "requestStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "DeclineJobOfferResult": {
+        "required": [
+          "offerId",
+          "requestId",
+          "offerStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "offerStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "DispatcherFleetEntryDto": {
+        "required": [
+          "repId",
+          "name",
+          "state",
+          "vehicleId",
+          "registration",
+          "lastPosition",
+          "activeRequestId",
+          "activeRequestTier",
+          "activeRequestTitle",
+          "humanControlled"
+        ],
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registration": {
+            "type": "string"
+          },
+          "lastPosition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LastPositionDto"
+              }
+            ]
+          },
+          "activeRequestId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "activeRequestTier": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activeRequestTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "humanControlled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DtcDto": {
+        "required": [
+          "id",
+          "code",
+          "title",
+          "requiredEquipment"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "requiredEquipment": {
+            "type": "string"
+          }
+        }
+      },
+      "FleetStateVehicleDto": {
+        "required": [
+          "vehicleId",
+          "claimingRepId",
+          "repState",
+          "humanControlled",
+          "activeRequestLocation"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "claimingRepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "repState": {
+            "type": "string"
+          },
+          "humanControlled": {
+            "type": "boolean"
+          },
+          "activeRequestLocation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ActiveRequestLocationDto"
+              }
+            ]
+          }
+        }
+      },
+      "ForceReleaseVehicleResult": {
+        "required": [
+          "vehicleId"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "HeartbeatResult": {
+        "required": [
+          "repId",
+          "lastHeartbeatAt"
+        ],
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastHeartbeatAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "JobOfferHistoryDto": {
+        "required": [
+          "offerId",
+          "repId",
+          "repName",
+          "status",
+          "offeredAt",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "offeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LastPositionDto": {
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "type": "object",
+        "properties": {
+          "lat": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "lng": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "LocationDto": {
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "type": "object",
+        "properties": {
+          "lat": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "lng": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "LoginCommand": {
         "required": [
           "email",
@@ -474,6 +1502,121 @@
           },
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "LoginResult": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "MyActiveServiceRequestDto": {
+        "required": [
+          "requestId",
+          "tier",
+          "dtcTitle",
+          "status",
+          "repState",
+          "requesterLatitude",
+          "requesterLongitude",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "dtcTitle": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "repState": {
+            "type": "string"
+          },
+          "requesterLatitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "requesterLongitude": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PendingJobOfferDto": {
+        "required": [
+          "offerId",
+          "requesterName",
+          "tier",
+          "dtcTitle",
+          "distanceMiles",
+          "etaMinutes",
+          "requesterLocation",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requesterName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "dtcTitle": {
+            "type": "string"
+          },
+          "distanceMiles": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "etaMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "requesterLocation": {
+            "$ref": "#/components/schemas/RequesterLocationDto"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -493,6 +1636,127 @@
             "format": "uuid"
           }
         }
+      },
+      "RedirectRepResult": {
+        "required": [
+          "repId",
+          "fromRequestId",
+          "toRequestId",
+          "repState"
+        ],
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repState": {
+            "type": "string"
+          }
+        }
+      },
+      "ReleaseVehicleResult": {
+        "required": [
+          "vehicleId"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "RequesterLocationDto": {
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "type": "object",
+        "properties": {
+          "lat": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "lng": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ServiceRequestDetailDto": {
+        "required": [
+          "requestId",
+          "requesterName",
+          "tier",
+          "dtcTitle",
+          "requesterLocation",
+          "status",
+          "assignedRep",
+          "createdAt",
+          "offerHistory"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requesterName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "dtcTitle": {
+            "type": "string"
+          },
+          "requesterLocation": {
+            "$ref": "#/components/schemas/LocationDto"
+          },
+          "status": {
+            "type": "string"
+          },
+          "assignedRep": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssignedRepDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "offerHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobOfferHistoryDto"
+            }
+          }
+        }
+      },
+      "ServiceTier": {
+        "type": "integer"
       },
       "SubmitServiceRequestBody": {
         "required": [
@@ -524,6 +1788,53 @@
           }
         }
       },
+      "SubmitServiceRequestResult": {
+        "required": [
+          "requestId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "TakeOverVehicleResult": {
+        "required": [
+          "sessionId",
+          "vehicleId",
+          "repId",
+          "repState",
+          "startedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repState": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "UpdateVehiclePositionRequest": {
         "required": [
           "latitude",
@@ -551,6 +1862,96 @@
           "timestamp": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UpdateVehiclePositionResult": {
+        "required": [
+          "vehicleId"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UserProfileResult": {
+        "required": [
+          "userId",
+          "name",
+          "role",
+          "tier",
+          "dealerId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ServiceTier"
+          },
+          "dealerId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UserRole": {
+        "type": "integer"
+      },
+      "VehicleDto": {
+        "required": [
+          "vehicleId",
+          "registration",
+          "state",
+          "currentRepId",
+          "equipment",
+          "lastPosition"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registration": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "currentRepId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastPosition": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LastPositionDto"
+              }
+            ]
           }
         }
       }
