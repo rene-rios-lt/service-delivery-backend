@@ -45,4 +45,45 @@ public class OpenApiContractTests : IClassFixture<CustomWebApplicationFactory>
             "contracts/openapi.json is stale — rebuild ServiceDelivery.Api to regenerate it (ADR-0011), " +
             "then commit the updated contract so the frontend and simulator mirror the real shapes");
     }
+
+    // QUAL-013: every REST success response must carry a typed schema so the committed contract
+    // guards response shapes (not just request bodies). Adding [ProducesResponseType<T>] to each
+    // action makes the OpenAPI generator emit a `content` block per 2xx response; this test fails
+    // if any 2xx response is untyped, and — via the sync-check above — turns the class of change
+    // BE-032 slipped through (a response DTO field that produced no contract diff) into a real diff.
+    // Purely file-based: it inspects the committed artifact, not the live document.
+    [Fact]
+    public async Task GivenTheCommittedContract_WhenInspected_ThenEvery2xxResponseHasASchema()
+    {
+        // Arrange
+        var committedPath = Path.Combine(AppContext.BaseDirectory, "contracts", "openapi.json");
+        File.Exists(committedPath).Should().BeTrue(
+            "contracts/openapi.json must be present — check the test project's Content link");
+
+        // Act
+        var doc = JsonNode.Parse(await File.ReadAllTextAsync(committedPath))!.AsObject();
+        var paths = doc["paths"]!.AsObject();
+
+        var unschematized = new List<string>();
+        foreach (var (path, pathItem) in paths)
+        {
+            foreach (var (method, operation) in pathItem!.AsObject())
+            {
+                var responses = operation!.AsObject()["responses"]?.AsObject();
+                if (responses is null) continue;
+                foreach (var (statusCode, response) in responses)
+                {
+                    if (!statusCode.StartsWith("2")) continue;
+                    var hasContent = response?.AsObject().ContainsKey("content") ?? false;
+                    if (!hasContent)
+                        unschematized.Add($"{method.ToUpperInvariant()} {path} {statusCode}");
+                }
+            }
+        }
+
+        // Assert
+        unschematized.Should().BeEmpty(
+            "every 2xx response must have a schema — add [ProducesResponseType<T>] to each " +
+            "action and run ./scripts/regen-openapi.sh (AC-2/AC-3, QUAL-013)");
+    }
 }

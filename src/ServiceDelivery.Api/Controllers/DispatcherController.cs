@@ -23,6 +23,7 @@ public class DispatcherController : ControllerBase
     }
 
     [HttpGet("fleet")]
+    [ProducesResponseType<IReadOnlyList<DispatcherFleetEntryDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFleet()
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");
@@ -35,6 +36,7 @@ public class DispatcherController : ControllerBase
     }
 
     [HttpPost("redirect")]
+    [ProducesResponseType<RedirectRepResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Redirect([FromBody] RedirectRepRequest body)
     {
         var dealerIdClaim = User.FindFirstValue("dealerId");

@@ -20,6 +20,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("me")]
+    [ProducesResponseType<UserProfileResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyProfile()
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier);

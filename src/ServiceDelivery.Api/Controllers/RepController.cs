@@ -22,6 +22,7 @@ public class RepController : ControllerBase
 
     [HttpPost("arrive")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<ArriveResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Arrive()
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -50,6 +51,7 @@ public class RepController : ControllerBase
 
     [HttpGet("active-job-state")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<ActiveJobStateDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetActiveJobState()
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -64,6 +66,7 @@ public class RepController : ControllerBase
 
     [HttpPost("heartbeat")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<HeartbeatResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Heartbeat()
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -84,6 +87,7 @@ public class RepController : ControllerBase
 
     [HttpPost("complete")]
     [Authorize(Roles = "ServiceRep")]
+    [ProducesResponseType<CompleteResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Complete()
     {
         var repIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

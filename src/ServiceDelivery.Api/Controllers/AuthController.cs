@@ -17,6 +17,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [ProducesResponseType<LoginResult>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         try
