@@ -31,7 +31,9 @@ public class GetDispatcherFleetQueryHandler
             return new DispatcherFleetEntryDto(
                 e.ClaimingRepId ?? Guid.Empty,
                 e.RepName,
-                (e.RepState ?? RepState.Offline).ToString(),
+                e.ClaimingRepId.HasValue
+                    ? (e.RepState ?? RepState.Offline).ToString()
+                    : "Unassigned",
                 e.VehicleId,
                 e.Registration,
                 lastPosition,
