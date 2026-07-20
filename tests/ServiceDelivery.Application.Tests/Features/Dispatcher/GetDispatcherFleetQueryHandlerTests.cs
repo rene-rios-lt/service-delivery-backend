@@ -77,7 +77,7 @@ public class GetDispatcherFleetQueryHandlerTests
     }
 
     [Fact]
-    public async Task GivenAnUnclaimedVehicle_WhenGetDispatcherFleetHandled_ThenRepFieldsNullAndStateOffline()
+    public async Task GivenAnUnclaimedVehicle_WhenGetDispatcherFleetHandled_ThenStateIsUnassigned()
     {
         // Arrange
         var dealerId = Guid.NewGuid();
@@ -98,10 +98,35 @@ public class GetDispatcherFleetQueryHandlerTests
         var dto = result[0];
         dto.RepId.Should().Be(Guid.Empty);
         dto.Name.Should().BeNull();
-        dto.State.Should().Be("Offline");
+        dto.State.Should().Be("Unassigned");
         dto.ActiveRequestId.Should().BeNull();
         dto.ActiveRequestTier.Should().BeNull();
         dto.Registration.Should().Be("V-002");
+    }
+
+    [Fact]
+    public async Task GivenAClaimedVehicleWhoseRepIsOffline_WhenGetDispatcherFleetHandled_ThenStateIsOffline()
+    {
+        // Arrange
+        var dealerId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var entries = new List<DispatcherFleetEntry>
+        {
+            new(vehicleId, "V-008", repId, "Riley Rep", RepState.Offline, false, 10.0, 20.0, null, null, null),
+        };
+        _vehicleRepositoryMock
+            .Setup(r => r.GetDispatcherFleetByDealerAsync(dealerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entries);
+
+        // Act
+        var result = await _handler.Handle(new GetDispatcherFleetQuery(dealerId), CancellationToken.None);
+
+        // Assert
+        result.Should().HaveCount(1);
+        var dto = result[0];
+        dto.RepId.Should().Be(repId);
+        dto.State.Should().Be("Offline");
     }
 
     [Fact]
