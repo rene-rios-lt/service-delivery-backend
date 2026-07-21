@@ -7,7 +7,7 @@ When a service request is submitted (or re-queued after a decline/redirect), the
 1. **Filter by dealer** — only consider reps belonging to the same dealer as the request
 2. **Filter by equipment** — only consider reps whose current vehicle carries the equipment type required by the request's DTC
 3. **Filter by state** — only consider reps in `Available` state. Automatic matching offers jobs only to free reps; reassigning an `EnRoute` rep to a higher-priority request is a dispatcher-only action via redirect (see Priority and Redirect Rules below), which enforces the tier, cooldown, and proximity protections
-4. **Exclude skipped reps** — exclude any rep who previously declined or had an expired offer for this specific request
+4. **Exclude skipped reps** — exclude any rep who previously **explicitly declined** this specific request; a rep whose offer merely expired remains eligible and may receive a new offer on the next matching run
 5. **Sort by distance** — calculate Haversine distance from each rep's last known position to the requester's location; sort ascending
 6. **Tiebreaker** — if two reps are equidistant, the rep who has been in `Available` state longest wins
 
@@ -91,8 +91,8 @@ If a human-controlled rep goes off-duty while mid-job, the abandoned request ret
 ## Job Offer Rules
 
 - One offer is active at a time per request — the next offer is sent only after the current one resolves
-- Offer expires after **60 seconds** with no response — treated identically to a decline
-- A rep who declines or whose offer expires is permanently skipped for that specific request (even if the request re-queues after all reps are exhausted)
+- Offer expires after **60 seconds** with no response — the rep is **not** permanently skipped; they become re-eligible for that specific request on the next matching run
+- A rep who explicitly **declines** an offer is permanently skipped for that specific request (even if the request re-queues after all reps are exhausted)
 - A rep cannot receive a new offer while they have an active pending offer
 
 ---
@@ -130,6 +130,6 @@ ETA is recalculated by the backend on every position update and broadcast to the
 
 When any of the following occur, the request returns to (or stays in) `Pending` and the dispatcher is notified:
 - No qualified rep is found by the matching algorithm
-- All qualified reps have declined or had expired offers for this request
+- All qualified reps have explicitly declined this request (expired offers do not permanently block re-matching)
 
 The system will automatically re-run the matching algorithm when a rep transitions to `Available` state (on job completion or vehicle claim), checking whether any pending requests now have a match.

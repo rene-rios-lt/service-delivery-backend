@@ -44,9 +44,11 @@ public class JobOfferRepositoryTests
     }
 
     [Fact]
-    public async Task GivenDeclinedAndExpiredOffers_WhenGetSkippedRepIds_ThenBothReturned()
+    public async Task GivenDeclinedAndExpiredOffers_WhenGetSkippedRepIds_ThenOnlyDeclinedReturned()
     {
         // Arrange
+        // BUG-054: only an explicit Decline skips a rep for a request. An Expired offer no longer
+        // contributes to the skip list, so the expired rep re-qualifies for the next matching run.
         using var context = CreateInMemoryContext();
         var requestId = Guid.NewGuid();
         var declinedRep = Guid.NewGuid();
@@ -67,7 +69,8 @@ public class JobOfferRepositoryTests
         var skipped = await repository.GetSkippedRepIdsForRequestAsync(requestId);
 
         // Assert
-        skipped.Should().BeEquivalentTo(new[] { declinedRep, expiredRep });
+        skipped.Should().BeEquivalentTo(new[] { declinedRep });
+        skipped.Should().NotContain(expiredRep);
         skipped.Should().NotContain(pendingRep);
         skipped.Should().NotContain(otherRequestRep);
     }

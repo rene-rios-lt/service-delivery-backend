@@ -201,6 +201,64 @@ public class MatchingServiceTests
     }
 
     [Fact]
+    public async Task GivenAllQualifiedRepsHaveOnlyExpiredOffers_WhenRunAsync_ThenWinnerIsSelectedAndOfferCreated()
+    {
+        // Arrange
+        // BUG-054: after the fix the repository no longer counts expired offers in the skip list, so a
+        // request whose only qualified rep merely let an offer expire is represented by an EMPTY skip list.
+        // The matcher must find a winner and create an offer — never fall silently into the pending path.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        var previouslyExpiredRep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(previouslyExpiredRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == previouslyExpiredRep && o.Status == JobOfferStatus.Pending),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _dispatchHub.Verify(h => h.SendServiceRequestPendingAsync(
+            It.IsAny<string>(), It.IsAny<ServiceRequestPendingPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GivenRepHasDeclinedAndAnotherRepHasExpiredOffer_WhenRunAsync_ThenOnlyDeclinedRepIsExcluded()
+    {
+        // Arrange
+        // BUG-054: the declined rep stays in the skip list (permanent opt-out); the expired rep does not,
+        // so the expired rep is the eligible winner and the declined rep is excluded.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        var declinedRep = Guid.NewGuid();
+        var previouslyExpiredRep = Guid.NewGuid();
+        ArrangeSkipped(request.Id, declinedRep);
+        ArrangeCandidates(DealerId,
+            Candidate(declinedRep, 10.0, 10.0, DateTime.UtcNow.AddHours(-2), EquipmentType.HydraulicTool),
+            Candidate(previouslyExpiredRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == previouslyExpiredRep),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == declinedRep),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GivenMultipleCandidatesAtDifferentDistances_WhenMatching_ThenNearestRepReceivesOffer()
     {
         // Arrange
