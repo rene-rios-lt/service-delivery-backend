@@ -1,9 +1,14 @@
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceDelivery.Api.Tests.Hubs;
+using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Application.Common.Interfaces.Payloads;
 using ServiceDelivery.Application.Features.Auth.Commands;
+using ServiceDelivery.Domain.Entities;
+using ServiceDelivery.Domain.Enums;
+using ServiceDelivery.Infrastructure.Persistence;
 using ServiceDelivery.Infrastructure.Persistence.Seed;
 
 namespace ServiceDelivery.Api.Tests.Matching;
@@ -20,6 +25,42 @@ public class MatchingIntegrationTests
     private static void SetBearer(HttpClient client, string token)
         => client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+    private static async Task<Guid> SeedPendingRequestWithExpiredOfferForRepAsync(
+        CustomWebApplicationFactory factory, Guid repId, double latitude, double longitude)
+    {
+        var requestId = Guid.NewGuid();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        db.ServiceRequests.Add(new ServiceRequest
+        {
+            Id = requestId,
+            DealerId = SeedConstants.DealerId,
+            RequesterId = SeedConstants.Gold1Id,
+            DtcId = SeedConstants.Dtc001Id,
+            Tier = ServiceTier.Gold,
+            Status = ServiceRequestStatus.Pending,
+            Latitude = latitude,
+            Longitude = longitude,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        // A prior offer to this rep that already expired. Before BUG-054 this poisoned the skip list,
+        // permanently excluding the rep and leaving the request unmatchable forever.
+        db.JobOffers.Add(new JobOffer
+        {
+            Id = Guid.NewGuid(),
+            ServiceRequestId = requestId,
+            RepId = repId,
+            OfferedAt = DateTime.UtcNow.AddMinutes(-5),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(-4),
+            Status = JobOfferStatus.Expired
+        });
+
+        await db.SaveChangesAsync();
+        return requestId;
+    }
 
     [Fact]
     public async Task GivenASubmittedRequestWithACandidate_WhenMatched_ThenRepReceivesJobOfferReceivedEvent()
@@ -91,6 +132,53 @@ public class MatchingIntegrationTests
         var payload = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
         payload.RequestId.Should().NotBeEmpty();
         payload.RequesterTier.Should().Be("Gold");
+        payload.DtcTitle.Should().Be("Hydraulic system fault");
+
+        await connection.StopAsync();
+    }
+
+    [Fact]
+    public async Task GivenRequestHasExpiredOfferForRepAndRepIsAvailable_WhenReconcilerRuns_ThenRepReceivesNewJobOffer()
+    {
+        // Arrange
+        await using var factory = new CustomWebApplicationFactory();
+        var httpClient = factory.CreateClient();
+
+        // Rep1 claims an equipped vehicle (Vehicle1 carries HydraulicTool → DTC-001) and the simulator
+        // gives it a position — Rep1 is now an Available candidate.
+        const double latitude = 37.7749;
+        const double longitude = -122.4194;
+        var repToken = await GetTokenAsync(httpClient, "rep1@dealer.com");
+        SetBearer(httpClient, repToken);
+        await httpClient.PostAsync($"/vehicles/{SeedConstants.Vehicle1Id}/claim", null);
+
+        var simulatorToken = await GetTokenAsync(httpClient, "simulator@system.internal");
+        SetBearer(httpClient, simulatorToken);
+        await httpClient.PostAsJsonAsync($"/vehicles/{SeedConstants.Vehicle1Id}/position",
+            new { latitude, longitude, timestamp = DateTime.UtcNow });
+
+        // A pending request already carries an EXPIRED offer for Rep1 (the BUG-054 poison scenario).
+        var requestId = await SeedPendingRequestWithExpiredOfferForRepAsync(
+            factory, SeedConstants.Rep1Id, latitude, longitude);
+
+        // Rep1 connects to RepHub and listens for a fresh offer.
+        var tcs = new TaskCompletionSource<JobOfferReceivedPayload>();
+        var connection = HubTestHelpers.BuildHubConnection(factory, "/hubs/rep", repToken);
+        connection.On<JobOfferReceivedPayload>("JobOfferReceived", tcs.SetResult);
+        await connection.StartAsync();
+        await HubTestHelpers.WaitForReadyAsync(connection);
+
+        // Act — the reconciler re-runs matching for the orphaned pending request.
+        using (var scope = factory.Services.CreateScope())
+        {
+            var reconciler = scope.ServiceProvider.GetRequiredService<IPendingRequestReconciler>();
+            await reconciler.ReconcileAsync();
+        }
+
+        // Assert
+        var payload = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        payload.RequestId.Should().Be(requestId);
+        payload.RequesterName.Should().Be("Gold User 1");
         payload.DtcTitle.Should().Be("Hydraulic system fault");
 
         await connection.StopAsync();

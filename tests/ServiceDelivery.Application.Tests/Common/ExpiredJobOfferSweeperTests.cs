@@ -111,9 +111,12 @@ public class ExpiredJobOfferSweeperTests
     }
 
     [Fact]
-    public async Task GivenAnExpiredOffersRep_WhenSweepRuns_ThenOfferIsPersistedExpiredBeforeRematchSoRepIsSkipped()
+    public async Task GivenAnExpiredOffersRep_WhenSweepRuns_ThenOfferIsPersistedExpiredBeforeRematch()
     {
-        // Arrange: AC-3 — Expired persisted before re-match, so GetSkippedRepIdsForRequest counts it and excludes the rep
+        // Arrange: the offer must be durably persisted as Expired (removing it from the Pending set)
+        // BEFORE re-matching, so the request is genuinely orphaned and the re-match does not collide with a
+        // still-Pending offer. Per BUG-054 an expired offer no longer skips the rep, so this ordering is
+        // about avoiding a duplicate concurrent offer — not about excluding the rep.
         var offer = PendingOffer();
         SetupExpiredPending(offer);
         var sequence = new List<string>();

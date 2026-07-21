@@ -25,9 +25,12 @@ public class JobOfferRepository : IJobOfferRepository
         Guid serviceRequestId,
         CancellationToken cancellationToken = default)
     {
+        // BUG-054: only an explicit Decline permanently skips a rep for a request. An Expired offer is a
+        // missed notification, not an opt-out — the rep re-qualifies on the next matching run. Including
+        // Expired here permanently poisoned the skip list, starving requests whose reps all let offers lapse.
         return await _context.JobOffers
             .Where(o => o.ServiceRequestId == serviceRequestId
-                        && (o.Status == JobOfferStatus.Declined || o.Status == JobOfferStatus.Expired))
+                        && o.Status == JobOfferStatus.Declined)
             .Select(o => o.RepId)
             .Distinct()
             .ToListAsync(cancellationToken);
