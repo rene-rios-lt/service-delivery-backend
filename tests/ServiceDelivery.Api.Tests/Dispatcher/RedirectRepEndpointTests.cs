@@ -233,5 +233,34 @@ public class RedirectRepEndpointTests
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    // BUG-059 AC-3: a Within15Miles rep whose vehicle moves back out past the threshold becomes redirect-eligible again.
+    private record PositionBody(double Latitude, double Longitude, DateTime Timestamp);
+
+    [Fact]
+    public async Task GivenAWithin15MilesRepWhoseVehicleMovesOutPast15Miles_WhenRedirectPosted_ThenReturns200()
+    {
+        // Arrange
+        await using var factory = new CustomWebApplicationFactory();
+        var (_, toRequestId) = await SeedRedirectScenarioAsync(
+            factory, SeedConstants.Rep1Id, SeedConstants.Vehicle1Id, ServiceTier.Bronze, ServiceTier.Gold,
+            repState: RepState.Within15Miles,
+            vehicleLat: FarVehicleLat, vehicleLng: FarVehicleLng);
+        var simulatorClient = await CreateAuthenticatedClientAsync(factory, "simulator@system.internal");
+        var dispatcherClient = await CreateAuthenticatedClientAsync(factory, "alex@dealer.com");
+
+        // Act — step 1: a position update far from the displaced request transitions the rep Within15Miles → EnRoute
+        var positionResponse = await simulatorClient.PostAsJsonAsync(
+            $"/vehicles/{SeedConstants.Vehicle1Id}/position",
+            new PositionBody(FarVehicleLat, FarVehicleLng, DateTime.UtcNow));
+        positionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Act — step 2: the redirect now succeeds (state gate and proximity guard both clear)
+        var response = await dispatcherClient.PostAsJsonAsync(
+            "/dispatcher/redirect", new RedirectBody(SeedConstants.Rep1Id, toRequestId));
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     private record ReasonResponse(string Reason);
 }

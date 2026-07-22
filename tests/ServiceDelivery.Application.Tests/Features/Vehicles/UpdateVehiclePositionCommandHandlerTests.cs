@@ -227,6 +227,86 @@ public class UpdateVehiclePositionCommandHandlerTests
         capturedState!.State.Should().Be(RepState.EnRoute);
     }
 
+    // BUG-059 AC-1: A Within15Miles rep whose vehicle moves past the exit threshold transitions back to EnRoute
+    [Fact]
+    public async Task GivenAWithin15MilesRep_WhenVehiclePositionUpdatesPastThreshold_ThenRepStateTransitionsToEnRoute()
+    {
+        // Arrange
+        var vehicleId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var requesterId = Guid.NewGuid();
+        var dealerId = Guid.NewGuid();
+        var vehicle = BuildVehicle(vehicleId, repId, dealerId);
+        var repState = BuildRepState(repId, RepState.Within15Miles);
+        var serviceRequest = BuildServiceRequest(repId, requesterId, ServiceRequestStatus.Assigned);
+
+        // Request at London centre
+        serviceRequest.Latitude = 51.5074;
+        serviceRequest.Longitude = -0.1278;
+
+        _vehicleRepoMock.Setup(r => r.GetByIdAsync(vehicleId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vehicle);
+        _repStateRepoMock.Setup(r => r.GetByRepIdAsync(repId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(repState);
+        _serviceRequestRepoMock.Setup(r => r.GetActiveByRepIdAsync(repId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(serviceRequest);
+
+        RepStateRecord? capturedState = null;
+        _repStateRepoMock.Setup(r => r.UpsertAsync(It.IsAny<RepStateRecord>(), It.IsAny<CancellationToken>()))
+            .Callback<RepStateRecord, CancellationToken>((s, _) => capturedState = s)
+            .Returns(Task.CompletedTask);
+
+        // Vehicle far away — Cardiff (approx 140 miles from London), clearly beyond the 17 mi exit threshold
+        var command = new UpdateVehiclePositionCommand(vehicleId, Guid.NewGuid(), 51.4816, -3.1791, DateTime.UtcNow);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        capturedState.Should().NotBeNull();
+        capturedState!.State.Should().Be(RepState.EnRoute);
+    }
+
+    // BUG-059 AC-1 (hysteresis): A Within15Miles rep in the 15–17 mi band stays Within15Miles (no flap)
+    [Fact]
+    public async Task GivenAWithin15MilesRepInHysteresisBand_WhenVehiclePositionUpdates_ThenRepStateRemainsWithin15Miles()
+    {
+        // Arrange
+        var vehicleId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var requesterId = Guid.NewGuid();
+        var dealerId = Guid.NewGuid();
+        var vehicle = BuildVehicle(vehicleId, repId, dealerId);
+        var repState = BuildRepState(repId, RepState.Within15Miles);
+        var serviceRequest = BuildServiceRequest(repId, requesterId, ServiceRequestStatus.Assigned);
+
+        // Request at London centre
+        serviceRequest.Latitude = 51.5074;
+        serviceRequest.Longitude = -0.1278;
+
+        _vehicleRepoMock.Setup(r => r.GetByIdAsync(vehicleId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(vehicle);
+        _repStateRepoMock.Setup(r => r.GetByRepIdAsync(repId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(repState);
+        _serviceRequestRepoMock.Setup(r => r.GetActiveByRepIdAsync(repId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(serviceRequest);
+
+        RepStateRecord? capturedState = null;
+        _repStateRepoMock.Setup(r => r.UpsertAsync(It.IsAny<RepStateRecord>(), It.IsAny<CancellationToken>()))
+            .Callback<RepStateRecord, CancellationToken>((s, _) => capturedState = s)
+            .Returns(Task.CompletedTask);
+
+        // Vehicle ~16 mi north of London — inside the 15–17 mi hysteresis band
+        var command = new UpdateVehiclePositionCommand(vehicleId, Guid.NewGuid(), 51.7393, -0.1278, DateTime.UtcNow);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        capturedState.Should().NotBeNull();
+        capturedState!.State.Should().Be(RepState.Within15Miles);
+    }
+
     // AC-4: ETA included in RepPositionUpdated payload
     [Fact]
     public async Task GivenAnEnRouteRepWithAssignedRequest_WhenPositionUpdated_ThenRepPositionUpdatedPayloadIncludesEta()
