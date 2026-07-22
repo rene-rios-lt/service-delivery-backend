@@ -10,6 +10,7 @@ namespace ServiceDelivery.Application.Features.Vehicles.Commands;
 public class UpdateVehiclePositionCommandHandler : IRequestHandler<UpdateVehiclePositionCommand, UpdateVehiclePositionResult>
 {
     private const double ThresholdMiles = 15.0;
+    private const double ExitThresholdMiles = 17.0;
 
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IRepStateRepository _repStateRepository;
@@ -49,7 +50,7 @@ public class UpdateVehiclePositionCommandHandler : IRequestHandler<UpdateVehicle
 
         await BroadcastVehiclePositionAsync(vehicle, repId, repState, cancellationToken);
 
-        if (repId.HasValue && repState?.State == RepState.EnRoute)
+        if (repId.HasValue && repState?.State is RepState.EnRoute or RepState.Within15Miles)
         {
             var activeRequest = await _serviceRequestRepository.GetActiveByRepIdAsync(repId.Value, cancellationToken);
 
@@ -59,7 +60,9 @@ public class UpdateVehiclePositionCommandHandler : IRequestHandler<UpdateVehicle
                     request.Latitude, request.Longitude,
                     activeRequest.Latitude, activeRequest.Longitude);
 
-                var newState = distanceMiles < ThresholdMiles ? RepState.Within15Miles : RepState.EnRoute;
+                var newState = repState.State == RepState.Within15Miles
+                    ? (distanceMiles >= ExitThresholdMiles ? RepState.EnRoute : RepState.Within15Miles)
+                    : (distanceMiles < ThresholdMiles ? RepState.Within15Miles : RepState.EnRoute);
                 repState.State = newState;
                 repState.UpdatedAt = DateTime.UtcNow;
                 await _repStateRepository.UpsertAsync(repState, cancellationToken);
