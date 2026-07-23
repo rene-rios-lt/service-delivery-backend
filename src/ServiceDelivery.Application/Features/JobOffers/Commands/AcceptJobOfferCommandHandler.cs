@@ -18,6 +18,7 @@ public class AcceptJobOfferCommandHandler
     private readonly IUserRepository _userRepository;
     private readonly IRequesterHubService _requesterHub;
     private readonly IDispatchHubService _dispatchHub;
+    private readonly IMatchingService _matchingService;
 
     public AcceptJobOfferCommandHandler(
         IJobOfferRepository jobOfferRepository,
@@ -26,7 +27,8 @@ public class AcceptJobOfferCommandHandler
         IVehicleRepository vehicleRepository,
         IUserRepository userRepository,
         IRequesterHubService requesterHub,
-        IDispatchHubService dispatchHub)
+        IDispatchHubService dispatchHub,
+        IMatchingService matchingService)
     {
         _jobOfferRepository = jobOfferRepository;
         _serviceRequestRepository = serviceRequestRepository;
@@ -35,6 +37,7 @@ public class AcceptJobOfferCommandHandler
         _userRepository = userRepository;
         _requesterHub = requesterHub;
         _dispatchHub = dispatchHub;
+        _matchingService = matchingService;
     }
 
     public async Task<AcceptJobOfferResult> Handle(AcceptJobOfferCommand request, CancellationToken cancellationToken)
@@ -49,8 +52,18 @@ public class AcceptJobOfferCommandHandler
             ?? throw new KeyNotFoundException($"Rep state for rep {offer.RepId} was not found.");
 
         if (repState.IsOnActiveJob())
+        {
+            // BUG-061: the rep took another job between offer and accept. Release the offer it can no
+            // longer take (Expire — no skip-list impact, BUG-054) and immediately re-match its request
+            // to the next eligible idle rep, rather than leaving it Pending until the ~60s sweeper.
+            // The rep's own active assignment is left intact; the 409 is still returned to the caller.
+            offer.Expire();
+            await _jobOfferRepository.UpdateAsync(offer, cancellationToken);
+            await _matchingService.RunAsync(offer.ServiceRequestId, cancellationToken);
+
             throw new RepAlreadyOnActiveJobException(
                 $"Rep {offer.RepId} is already on an active job (state: {repState.State}) and cannot accept a new offer.");
+        }
 
         var oldRepState = repState.State.ToString();
 
