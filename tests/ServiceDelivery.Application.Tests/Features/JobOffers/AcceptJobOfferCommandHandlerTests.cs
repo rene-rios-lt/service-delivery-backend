@@ -20,6 +20,7 @@ public class AcceptJobOfferCommandHandlerTests
     private readonly Mock<IUserRepository> _userRepository = new();
     private readonly Mock<IRequesterHubService> _requesterHub = new();
     private readonly Mock<IDispatchHubService> _dispatchHub = new();
+    private readonly Mock<IMatchingService> _matchingService = new();
     private readonly AcceptJobOfferCommandHandler _handler;
 
     private static readonly Guid OfferId = Guid.NewGuid();
@@ -37,7 +38,8 @@ public class AcceptJobOfferCommandHandlerTests
             _vehicleRepository.Object,
             _userRepository.Object,
             _requesterHub.Object,
-            _dispatchHub.Object);
+            _dispatchHub.Object,
+            _matchingService.Object);
     }
 
     private static readonly Guid DisplacedFromRepId = Guid.NewGuid();
@@ -347,7 +349,26 @@ public class AcceptJobOfferCommandHandlerTests
     [InlineData(RepState.EnRoute)]
     [InlineData(RepState.Within15Miles)]
     [InlineData(RepState.OnSite)]
-    public async Task GivenARepOnActiveJob_WhenHandlerAccepts_ThenNoRepositoryMutationOrHubEventOccurs(RepState activeState)
+    public async Task GivenARepOnActiveJob_WhenHandlerAccepts_ThenOfferIsExpiredAndPersisted(RepState activeState)
+    {
+        // Arrange
+        SetupHappyPath(repState: activeState);
+
+        // Act
+        var act = () => _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<RepAlreadyOnActiveJobException>();
+        _jobOfferRepository.Verify(r => r.UpdateAsync(
+            It.Is<JobOffer>(o => o.Id == OfferId && o.Status == JobOfferStatus.Expired),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(RepState.EnRoute)]
+    [InlineData(RepState.Within15Miles)]
+    [InlineData(RepState.OnSite)]
+    public async Task GivenARepOnActiveJob_WhenHandlerAccepts_ThenRepStateAndAcceptHubEventsAreUntouched(RepState activeState)
     {
         // Arrange
         var existingRequestId = Guid.NewGuid();
@@ -368,12 +389,45 @@ public class AcceptJobOfferCommandHandlerTests
         await act.Should().ThrowAsync<RepAlreadyOnActiveJobException>();
         repStateRecord.ActiveRequestId.Should().Be(existingRequestId);
         repStateRecord.State.Should().Be(activeState);
-        _jobOfferRepository.Verify(r => r.UpdateAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()), Times.Never);
         _serviceRequestRepository.Verify(r => r.UpdateAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Never);
         _repStateRepository.Verify(r => r.UpsertAsync(It.IsAny<RepStateRecord>(), It.IsAny<CancellationToken>()), Times.Never);
         _requesterHub.Verify(h => h.SendRepAssignedAsync(It.IsAny<string>(), It.IsAny<RepAssignedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
         _dispatchHub.Verify(h => h.SendServiceRequestAssignedAsync(It.IsAny<string>(), It.IsAny<ServiceRequestAssignedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
         _dispatchHub.Verify(h => h.SendRepStateChangedAsync(It.IsAny<string>(), It.IsAny<RepStateChangedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GivenARepOnActiveJobAndNoOtherCandidateExists_WhenHandlerAccepts_ThenOfferIsStillReleasedAndExceptionThrown()
+    {
+        // Arrange
+        SetupHappyPath(repState: RepState.EnRoute);
+        _matchingService.Setup(s => s.RunAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        // Act
+        var act = () => _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<RepAlreadyOnActiveJobException>();
+        _jobOfferRepository.Verify(r => r.UpdateAsync(
+            It.Is<JobOffer>(o => o.Id == OfferId && o.Status == JobOfferStatus.Expired),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(RepState.EnRoute)]
+    [InlineData(RepState.Within15Miles)]
+    [InlineData(RepState.OnSite)]
+    public async Task GivenARepOnActiveJob_WhenHandlerAccepts_ThenMatchingIsReTriggeredForTheReleasedRequest(RepState activeState)
+    {
+        // Arrange
+        SetupHappyPath(repState: activeState);
+
+        // Act
+        var act = () => _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<RepAlreadyOnActiveJobException>();
+        _matchingService.Verify(s => s.RunAsync(RequestId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
