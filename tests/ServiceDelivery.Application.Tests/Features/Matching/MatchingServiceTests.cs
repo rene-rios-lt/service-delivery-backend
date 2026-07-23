@@ -86,6 +86,11 @@ public class MatchingServiceTests
         => _jobOffers.Setup(j => j.GetSkippedRepIdsForRequestAsync(requestId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(skippedRepIds);
 
+    private void ArrangeLivePendingOffer(Guid requestId, JobOffer? offer = null)
+        => _jobOffers.Setup(j => j.GetLivePendingOfferForRequestAsync(
+                requestId, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(offer);
+
     private static RepMatchCandidate Candidate(
         Guid repId,
         double lat,
@@ -212,6 +217,8 @@ public class MatchingServiceTests
         ArrangeDtc();
         ArrangeRequester();
         ArrangeSkipped(request.Id);
+        // BUG-058: no LIVE Pending offer exists — an expired offer must not block re-offering (BUG-054).
+        ArrangeLivePendingOffer(request.Id);
         var previouslyExpiredRep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(previouslyExpiredRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
@@ -241,6 +248,8 @@ public class MatchingServiceTests
         var declinedRep = Guid.NewGuid();
         var previouslyExpiredRep = Guid.NewGuid();
         ArrangeSkipped(request.Id, declinedRep);
+        // BUG-058: no LIVE Pending offer exists — declined/expired offers must not block re-offering (BUG-054).
+        ArrangeLivePendingOffer(request.Id);
         ArrangeCandidates(DealerId,
             Candidate(declinedRep, 10.0, 10.0, DateTime.UtcNow.AddHours(-2), EquipmentType.HydraulicTool),
             Candidate(previouslyExpiredRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
@@ -510,6 +519,155 @@ public class MatchingServiceTests
             It.IsAny<CancellationToken>()), Times.Once);
         _jobOffers.Verify(j => j.AddAsync(
             It.Is<JobOffer>(o => o.ServiceRequestId == request2.Id),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARequestWithALivePendingOffer_WhenRunAsyncCalled_ThenNoSecondOfferCreated()
+    {
+        // Arrange
+        // BUG-058: even with a valid winner present, a live (unexpired) Pending offer already exists
+        // for this request, so the matcher must short-circuit before constructing a second offer.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeLivePendingOffer(request.Id, new JobOffer
+        {
+            Id = Guid.NewGuid(),
+            ServiceRequestId = request.Id,
+            RepId = Guid.NewGuid(),
+            OfferedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            Status = JobOfferStatus.Pending
+        });
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repHub.Verify(h => h.SendJobOfferReceivedAsync(
+            It.IsAny<string>(), It.IsAny<JobOfferReceivedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GivenTwoSequentialRunAsyncCalls_WhenSecondCallFindsLiveOffer_ThenOnlyOneOfferCreated()
+    {
+        // Arrange
+        // BUG-058: the deterministic stand-in for two near-simultaneous matching passes (the true
+        // sub-millisecond race is a documented POC boundary needing a DB unique index). First pass finds
+        // no live offer and creates one; second pass finds the now-live offer and returns before creating.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        var createdOffer = new JobOffer
+        {
+            Id = Guid.NewGuid(),
+            ServiceRequestId = request.Id,
+            RepId = rep,
+            OfferedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            Status = JobOfferStatus.Pending
+        };
+        _jobOffers.SetupSequence(j => j.GetLivePendingOfferForRequestAsync(
+                request.Id, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((JobOffer?)null)
+            .ReturnsAsync(createdOffer);
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenRequestWithNoLivePendingOffer_WhenRunAsyncCalled_ThenExactlyOneOfferCreated()
+    {
+        // Arrange
+        // BUG-058: the no-live-offer path proceeds normally and creates exactly one offer.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.ServiceRequestId == request.Id && o.RepId == rep),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenRequestWithOnlyExpiredStatusOffer_WhenRunAsyncCalled_ThenNewOfferStillCreated()
+    {
+        // Arrange
+        // BUG-058/BUG-054: an Expired-status offer is never "live" — GetLivePendingOfferForRequestAsync
+        // returns null (the repository Status filter excludes it), so a new offer is still created.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == rep && o.Status == JobOfferStatus.Pending),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenRequestWithOnlyDeclinedOffer_WhenRunAsyncCalled_ThenNewOfferStillCreated()
+    {
+        // Arrange
+        // BUG-058/BUG-054: a Declined offer is never "live" — GetLivePendingOfferForRequestAsync returns
+        // null, so a fresh (non-declined) rep still receives a new offer; dedup must not starve the request.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var freshRep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(freshRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == freshRep && o.Status == JobOfferStatus.Pending),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

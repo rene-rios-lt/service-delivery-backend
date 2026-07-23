@@ -16,5 +16,10 @@ public interface IJobOfferRepository
 
     Task<IReadOnlyList<JobOffer>> GetExpiredPendingAsync(DateTime asOf, CancellationToken cancellationToken = default);
 
+    Task<JobOffer?> GetLivePendingOfferForRequestAsync(
+        Guid serviceRequestId,
+        DateTime asOf,
+        CancellationToken cancellationToken = default);
+
     Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default);
 }
