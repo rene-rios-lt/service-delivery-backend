@@ -3,6 +3,7 @@ using ServiceDelivery.Application.Common;
 using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Application.Common.Interfaces.Payloads;
 using ServiceDelivery.Domain.Entities;
+using ServiceDelivery.Domain.Exceptions;
 using ServiceDelivery.Domain.Interfaces;
 
 namespace ServiceDelivery.Application.Features.JobOffers.Commands;
@@ -46,6 +47,10 @@ public class AcceptJobOfferCommandHandler
 
         var repState = await _repStateRepository.GetByRepIdAsync(offer.RepId, cancellationToken)
             ?? throw new KeyNotFoundException($"Rep state for rep {offer.RepId} was not found.");
+
+        if (repState.IsOnActiveJob())
+            throw new RepAlreadyOnActiveJobException(
+                $"Rep {offer.RepId} is already on an active job (state: {repState.State}) and cannot accept a new offer.");
 
         var oldRepState = repState.State.ToString();
 

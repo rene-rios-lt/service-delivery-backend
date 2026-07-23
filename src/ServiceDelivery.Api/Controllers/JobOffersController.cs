@@ -61,6 +61,10 @@ public class JobOffersController : ControllerBase
         {
             return Conflict(new { error = ex.Message });
         }
+        catch (RepAlreadyOnActiveJobException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
     }
 
     [HttpPost("{id:guid}/decline")]
