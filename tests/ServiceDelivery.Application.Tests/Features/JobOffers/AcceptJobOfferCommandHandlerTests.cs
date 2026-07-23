@@ -327,6 +327,71 @@ public class AcceptJobOfferCommandHandlerTests
             It.IsAny<string>(), It.IsAny<RepRedirectedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData(RepState.EnRoute)]
+    [InlineData(RepState.Within15Miles)]
+    [InlineData(RepState.OnSite)]
+    public async Task GivenARepOnActiveJob_WhenHandlerAccepts_ThenRepAlreadyOnActiveJobExceptionIsThrown(RepState activeState)
+    {
+        // Arrange
+        SetupHappyPath(repState: activeState);
+
+        // Act
+        var act = () => _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<RepAlreadyOnActiveJobException>();
+    }
+
+    [Theory]
+    [InlineData(RepState.EnRoute)]
+    [InlineData(RepState.Within15Miles)]
+    [InlineData(RepState.OnSite)]
+    public async Task GivenARepOnActiveJob_WhenHandlerAccepts_ThenNoRepositoryMutationOrHubEventOccurs(RepState activeState)
+    {
+        // Arrange
+        var existingRequestId = Guid.NewGuid();
+        SetupHappyPath(repState: activeState);
+        var repStateRecord = new RepStateRecord
+        {
+            RepId = RepId,
+            State = activeState,
+            ActiveRequestId = existingRequestId,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _repStateRepository.Setup(r => r.GetByRepIdAsync(RepId, It.IsAny<CancellationToken>())).ReturnsAsync(repStateRecord);
+
+        // Act
+        var act = () => _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<RepAlreadyOnActiveJobException>();
+        repStateRecord.ActiveRequestId.Should().Be(existingRequestId);
+        repStateRecord.State.Should().Be(activeState);
+        _jobOfferRepository.Verify(r => r.UpdateAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()), Times.Never);
+        _serviceRequestRepository.Verify(r => r.UpdateAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repStateRepository.Verify(r => r.UpsertAsync(It.IsAny<RepStateRecord>(), It.IsAny<CancellationToken>()), Times.Never);
+        _requesterHub.Verify(h => h.SendRepAssignedAsync(It.IsAny<string>(), It.IsAny<RepAssignedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+        _dispatchHub.Verify(h => h.SendServiceRequestAssignedAsync(It.IsAny<string>(), It.IsAny<ServiceRequestAssignedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+        _dispatchHub.Verify(h => h.SendRepStateChangedAsync(It.IsAny<string>(), It.IsAny<RepStateChangedPayload>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GivenAnAvailableRep_WhenHandlerAcceptsValidPendingOffer_ThenAcceptSucceedsAndGuardDoesNotFire()
+    {
+        // Arrange
+        SetupHappyPath(repState: RepState.Available);
+
+        // Act
+        var act = () => _handler.Handle(Command(), CancellationToken.None);
+
+        // Assert
+        await act.Should().NotThrowAsync<RepAlreadyOnActiveJobException>();
+        _repStateRepository.Verify(r => r.UpsertAsync(
+            It.Is<RepStateRecord>(s => s.RepId == RepId && s.State == RepState.EnRoute && s.ActiveRequestId == RequestId),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     [Fact]
     public async Task GivenANonExistentOffer_WhenHandlerAccepts_ThenKeyNotFoundExceptionIsThrown()
     {
