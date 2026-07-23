@@ -69,6 +69,15 @@ public class MatchingService : IMatchingService
             return;
         }
 
+        // BUG-058: idempotency guard — if a live Pending offer already exists for this request,
+        // skip creating a second. "Live" = Status == Pending AND ExpiresAt > now (both required).
+        // An expired-but-unswept Pending offer (ExpiresAt <= now) is semantically dead and must
+        // not block re-offering — that would re-introduce the BUG-054 skip-list starvation.
+        var liveOffer = await _jobOffers.GetLivePendingOfferForRequestAsync(
+            request.Id, DateTime.UtcNow, cancellationToken);
+        if (liveOffer is not null)
+            return;
+
         var now = DateTime.UtcNow;
         var offer = new JobOffer
         {

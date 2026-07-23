@@ -59,6 +59,22 @@ public class JobOfferRepository : IJobOfferRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<JobOffer?> GetLivePendingOfferForRequestAsync(
+        Guid serviceRequestId,
+        DateTime asOf,
+        CancellationToken cancellationToken = default)
+    {
+        // BUG-058: complement of GetExpiredPendingAsync (which uses ExpiresAt <= asOf).
+        // A "live" offer requires both Status == Pending AND ExpiresAt > asOf.
+        // Declined and Expired-status offers are excluded by the Status filter, preserving
+        // the BUG-054 guarantee that those states never block re-offering.
+        return await _context.JobOffers
+            .Where(o => o.ServiceRequestId == serviceRequestId
+                        && o.Status == JobOfferStatus.Pending
+                        && o.ExpiresAt > asOf)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default)
     {
         _context.JobOffers.Update(offer);
