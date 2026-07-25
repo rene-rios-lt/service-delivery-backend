@@ -91,6 +91,11 @@ public class MatchingServiceTests
                 requestId, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(offer);
 
+    private void ArrangeBusyRepIds(params Guid[] busyRepIds)
+        => _jobOffers.Setup(j => j.GetRepIdsWithLivePendingOfferAsync(
+                It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyList<Guid>)busyRepIds);
+
     private static RepMatchCandidate Candidate(
         Guid repId,
         double lat,
@@ -111,6 +116,7 @@ public class MatchingServiceTests
         var sameDealerRep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(sameDealerRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -138,6 +144,7 @@ public class MatchingServiceTests
         ArrangeCandidates(DealerId,
             Candidate(unequippedRep, 10.0, 10.0, DateTime.UtcNow.AddHours(-2), EquipmentType.HydraulicTool),
             Candidate(equippedRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.BrakingSystemKit));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -164,6 +171,7 @@ public class MatchingServiceTests
         var availableRep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(availableRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -191,6 +199,7 @@ public class MatchingServiceTests
         ArrangeCandidates(DealerId,
             Candidate(declinedRep, 10.0, 10.0, DateTime.UtcNow.AddHours(-2), EquipmentType.HydraulicTool),
             Candidate(freshRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -222,6 +231,7 @@ public class MatchingServiceTests
         var previouslyExpiredRep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(previouslyExpiredRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -253,6 +263,7 @@ public class MatchingServiceTests
         ArrangeCandidates(DealerId,
             Candidate(declinedRep, 10.0, 10.0, DateTime.UtcNow.AddHours(-2), EquipmentType.HydraulicTool),
             Candidate(previouslyExpiredRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -281,6 +292,7 @@ public class MatchingServiceTests
         ArrangeCandidates(DealerId,
             Candidate(farRep, 12.0, 12.0, DateTime.UtcNow, EquipmentType.HydraulicTool),
             Candidate(nearRep, 10.1, 10.1, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -309,6 +321,7 @@ public class MatchingServiceTests
         ArrangeCandidates(DealerId,
             Candidate(recentlyAvailableRep, 10.1, 10.1, new DateTime(2026, 6, 11, 9, 0, 0, DateTimeKind.Utc), EquipmentType.HydraulicTool),
             Candidate(longestAvailableRep, 10.1, 10.1, new DateTime(2026, 6, 11, 8, 0, 0, DateTimeKind.Utc), EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -335,6 +348,7 @@ public class MatchingServiceTests
         var rep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -362,6 +376,7 @@ public class MatchingServiceTests
         var rep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -390,6 +405,7 @@ public class MatchingServiceTests
         ArrangeRequester();
         ArrangeSkipped(request.Id);
         ArrangeCandidates(DealerId);
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -416,6 +432,7 @@ public class MatchingServiceTests
         ArrangeRequester();
         ArrangeSkipped(request.Id);
         ArrangeCandidates(DealerId);
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -448,6 +465,7 @@ public class MatchingServiceTests
         _jobOffers.Setup(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()))
             .Callback<JobOffer, CancellationToken>((o, _) => captured = o)
             .Returns(Task.CompletedTask);
+        ArrangeBusyRepIds();
         var service = CreateService(offerExpirySeconds: ConfiguredExpirySeconds);
 
         // Act
@@ -478,6 +496,7 @@ public class MatchingServiceTests
         _jobOffers.Setup(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()))
             .Callback<JobOffer, CancellationToken>((o, _) => captured = o)
             .Returns(Task.CompletedTask);
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -508,6 +527,7 @@ public class MatchingServiceTests
         var rep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -545,6 +565,7 @@ public class MatchingServiceTests
             ExpiresAt = DateTime.UtcNow.AddMinutes(1),
             Status = JobOfferStatus.Pending
         });
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -584,6 +605,7 @@ public class MatchingServiceTests
                 request.Id, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((JobOffer?)null)
             .ReturnsAsync(createdOffer);
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -608,6 +630,7 @@ public class MatchingServiceTests
         var rep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -634,6 +657,7 @@ public class MatchingServiceTests
         var rep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -660,6 +684,7 @@ public class MatchingServiceTests
         var freshRep = Guid.NewGuid();
         ArrangeCandidates(DealerId,
             Candidate(freshRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
         var service = CreateService();
 
         // Act
@@ -668,6 +693,205 @@ public class MatchingServiceTests
         // Assert
         _jobOffers.Verify(j => j.AddAsync(
             It.Is<JobOffer>(o => o.RepId == freshRep && o.Status == JobOfferStatus.Pending),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWithALivePendingOfferForADifferentRequest_WhenMatcherRunsForNewRequest_ThenRepIsExcluded()
+    {
+        // Arrange
+        // BUG-063: the only available rep already holds a live Pending offer for a DIFFERENT request,
+        // so it must not be offered this request. With no other candidate, dispatchers are notified.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var busyRep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(busyRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds(busyRep);
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == busyRep),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _dispatchHub.Verify(h => h.SendServiceRequestPendingAsync(
+            $"dealer:{request.DealerId}",
+            It.IsAny<ServiceRequestPendingPayload>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWithALivePendingOfferAndAFreeRep_WhenMatcherRunsForNewRequest_ThenFreeRepGetsOffer()
+    {
+        // Arrange
+        // BUG-063: two equally-qualified candidates; one is soft-reserved by a live Pending offer and the
+        // other is free. The free rep must receive the offer and the busy rep must be skipped.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var busyRep = Guid.NewGuid();
+        var freeRep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(busyRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool),
+            Candidate(freeRep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds(busyRep);
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == freeRep),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == busyRep),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GivenARepWhoseOnlyPendingOfferHasExpiredTimestamp_WhenMatcherRuns_ThenRepIsACandidate()
+    {
+        // Arrange
+        // BUG-063 AC-2 (expire path): the rep's prior Pending offer has an expired timestamp, so the
+        // repository no longer reports it as busy (empty busy list). The rep re-qualifies and is offered.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == rep),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWhoseOnlyPendingOfferIsDeclined_WhenMatcherRuns_ThenRepIsACandidate()
+    {
+        // Arrange
+        // BUG-063 AC-2 (decline path): a Declined offer is never live, so the repository does not report
+        // the rep as busy (empty busy list). The rep re-qualifies for a DIFFERENT request and is offered.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == rep),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenARepWhosePendingOfferWasAccepted_WhenMatcherRuns_ThenRepNotInCandidatePool()
+    {
+        // Arrange
+        // BUG-063 AC-2 (accept path): once the rep accepts, its rep state flips to EnRoute and the
+        // Available gate excludes it from the candidate pool entirely. No offer is created; dispatchers notified.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        ArrangeCandidates(DealerId);
+        ArrangeBusyRepIds();
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(It.IsAny<JobOffer>(), It.IsAny<CancellationToken>()), Times.Never);
+        _dispatchHub.Verify(h => h.SendServiceRequestPendingAsync(
+            $"dealer:{request.DealerId}",
+            It.IsAny<ServiceRequestPendingPayload>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenOnlyRepHasExpiredStatusJobOffer_WhenMatcherRuns_ThenBug054ReOfferPreserved()
+    {
+        // Arrange
+        // BUG-063 AC-3: a Status=Expired offer must NOT appear in the busy list (empty) and must NOT be in
+        // the skip list (BUG-054). The sole rep therefore re-qualifies and is offered — no regression.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == rep && o.Status == JobOfferStatus.Pending),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GivenSoleCandidateHadLivePendingOfferThatNowExpired_WhenMatcherRuns_ThenRepIsOfferedAgain()
+    {
+        // Arrange
+        // BUG-063 AC-3: the sole candidate's prior live offer has since expired, so it is no longer in the
+        // busy list and no live offer exists for the current request. The matcher must not deadlock — it
+        // offers the rep again.
+        var request = BuildRequest();
+        ArrangeRequest(request);
+        ArrangeDtc();
+        ArrangeRequester();
+        ArrangeSkipped(request.Id);
+        ArrangeLivePendingOffer(request.Id);
+        var rep = Guid.NewGuid();
+        ArrangeCandidates(DealerId,
+            Candidate(rep, 10.0, 10.0, DateTime.UtcNow, EquipmentType.HydraulicTool));
+        ArrangeBusyRepIds();
+        var service = CreateService();
+
+        // Act
+        await service.RunAsync(request.Id);
+
+        // Assert
+        _jobOffers.Verify(j => j.AddAsync(
+            It.Is<JobOffer>(o => o.RepId == rep),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

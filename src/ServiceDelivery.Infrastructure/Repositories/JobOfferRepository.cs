@@ -75,6 +75,21 @@ public class JobOfferRepository : IJobOfferRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Guid>> GetRepIdsWithLivePendingOfferAsync(
+        DateTime asOf,
+        CancellationToken cancellationToken = default)
+    {
+        // BUG-063: rep-grain counterpart of GetLivePendingOfferForRequestAsync. A rep is "busy"
+        // (holds a live soft reservation) only when it has a Pending offer that has not yet expired
+        // (Status == Pending AND ExpiresAt > asOf). Declined/Expired/Accepted offers, and Pending
+        // offers past expiry, never mark a rep busy — preserving the BUG-054 re-offer guarantee.
+        return await _context.JobOffers
+            .Where(o => o.Status == JobOfferStatus.Pending && o.ExpiresAt > asOf)
+            .Select(o => o.RepId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default)
     {
         _context.JobOffers.Update(offer);
