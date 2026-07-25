@@ -21,5 +21,9 @@ public interface IJobOfferRepository
         DateTime asOf,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Guid>> GetRepIdsWithLivePendingOfferAsync(
+        DateTime asOf,
+        CancellationToken cancellationToken = default);
+
     Task UpdateAsync(JobOffer offer, CancellationToken cancellationToken = default);
 }

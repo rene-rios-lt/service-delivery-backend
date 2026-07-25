@@ -51,9 +51,16 @@ public class MatchingService : IMatchingService
         var candidates = await _repStates.GetAvailableByDealerAsync(request.DealerId, cancellationToken);
         var skippedRepIds = await _jobOffers.GetSkippedRepIdsForRequestAsync(request.Id, cancellationToken);
 
+        // BUG-063: a rep already holding a live Pending offer for a DIFFERENT request is soft-reserved and
+        // must not be offered this one — otherwise the matcher double-offers a rep at the source. This is the
+        // rep-grain counterpart of the BUG-058 per-request dedup guard below. "Live" = Status == Pending AND
+        // ExpiresAt > now (both required), so declined/expired/accepted offers never block a rep (BUG-054).
+        var busyRepIds = await _jobOffers.GetRepIdsWithLivePendingOfferAsync(DateTime.UtcNow, cancellationToken);
+
         var winner = candidates
             .Where(c => c.Equipment.Contains(dtc.RequiredEquipmentType))
             .Where(c => !skippedRepIds.Contains(c.RepId))
+            .Where(c => !busyRepIds.Contains(c.RepId))
             .OrderBy(c => HaversineCalculator.DistanceMiles(
                 c.VehicleLatitude, c.VehicleLongitude, request.Latitude, request.Longitude))
             .ThenBy(c => c.AvailableSince)
