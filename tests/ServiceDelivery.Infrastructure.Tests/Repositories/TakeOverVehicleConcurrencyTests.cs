@@ -51,7 +51,7 @@ public class TakeOverVehicleConcurrencyTests : IDisposable
     private TakeOverVehicleCommandHandler BuildHandler(AppDbContext context)
     {
         return new TakeOverVehicleCommandHandler(
-            new VehicleRepository(context),
+            new VehicleRepository(context, new RedirectOptions()),
             new RepSessionRepository(context),
             new RepStateRepository(context),
             new NoOpDispatchHubService());

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Domain.Entities;
 using ServiceDelivery.Domain.Enums;
 using ServiceDelivery.Infrastructure.Persistence;
@@ -61,7 +62,7 @@ public class VehicleRepositoryDispatcherFleetTests
         });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
@@ -135,7 +136,7 @@ public class VehicleRepositoryDispatcherFleetTests
         });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
@@ -182,7 +183,7 @@ public class VehicleRepositoryDispatcherFleetTests
         });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
@@ -227,7 +228,7 @@ public class VehicleRepositoryDispatcherFleetTests
         });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
@@ -261,7 +262,7 @@ public class VehicleRepositoryDispatcherFleetTests
         });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
@@ -300,7 +301,7 @@ public class VehicleRepositoryDispatcherFleetTests
         });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
@@ -309,6 +310,144 @@ public class VehicleRepositoryDispatcherFleetTests
         result.Should().HaveCount(1);
         result[0].LastLatitude.Should().BeNull();
         result[0].LastLongitude.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GivenARepWithLastRedirectedAt_WhenGetDispatcherFleetByDealer_ThenRedirectCooldownExpiresAtEqualsLastRedirectedAtPlusCooldown()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var lastRedirectedAt = new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            DealerId = dealerId,
+            Registration = "V-001",
+            ClaimedByRepId = repId,
+            LastLatitude = 41.5,
+            LastLongitude = -93.6
+        });
+        context.Users.Add(new User
+        {
+            Id = repId,
+            Name = "Riley Rep",
+            Email = "riley@dealer.com",
+            Role = UserRole.ServiceRep,
+            DealerId = dealerId
+        });
+        context.RepStateRecords.Add(new RepStateRecord
+        {
+            RepId = repId,
+            State = RepState.EnRoute,
+            HumanControlled = false,
+            LastRedirectedAt = lastRedirectedAt
+        });
+        await context.SaveChangesAsync();
+
+        var repository = new VehicleRepository(context, new RedirectOptions { CooldownMinutes = 5 });
+
+        // Act
+        var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].RedirectCooldownExpiresAt.Should().Be(lastRedirectedAt.AddMinutes(5));
+    }
+
+    [Fact]
+    public async Task GivenARepWithNullLastRedirectedAt_WhenGetDispatcherFleetByDealer_ThenRedirectCooldownExpiresAtIsNull()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            DealerId = dealerId,
+            Registration = "V-001",
+            ClaimedByRepId = repId,
+            LastLatitude = 10.0,
+            LastLongitude = 20.0
+        });
+        context.Users.Add(new User
+        {
+            Id = repId,
+            Name = "Riley Rep",
+            Email = "riley@dealer.com",
+            Role = UserRole.ServiceRep,
+            DealerId = dealerId
+        });
+        context.RepStateRecords.Add(new RepStateRecord
+        {
+            RepId = repId,
+            State = RepState.Available,
+            HumanControlled = false,
+            LastRedirectedAt = null
+        });
+        await context.SaveChangesAsync();
+
+        var repository = new VehicleRepository(context, new RedirectOptions { CooldownMinutes = 5 });
+
+        // Act
+        var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].RedirectCooldownExpiresAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GivenARepWithLastRedirectedAtAndANonDefaultCooldownWindow_WhenGetDispatcherFleetByDealer_ThenRedirectCooldownExpiresAtUsesTheConfiguredWindow()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
+        var dealerId = Guid.NewGuid();
+        var repId = Guid.NewGuid();
+        var vehicleId = Guid.NewGuid();
+        var lastRedirectedAt = new DateTime(2026, 7, 27, 12, 0, 0, DateTimeKind.Utc);
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            DealerId = dealerId,
+            Registration = "V-001",
+            ClaimedByRepId = repId,
+            LastLatitude = 41.5,
+            LastLongitude = -93.6
+        });
+        context.Users.Add(new User
+        {
+            Id = repId,
+            Name = "Riley Rep",
+            Email = "riley@dealer.com",
+            Role = UserRole.ServiceRep,
+            DealerId = dealerId
+        });
+        context.RepStateRecords.Add(new RepStateRecord
+        {
+            RepId = repId,
+            State = RepState.EnRoute,
+            HumanControlled = false,
+            LastRedirectedAt = lastRedirectedAt
+        });
+        await context.SaveChangesAsync();
+
+        // A non-default cooldown window (default is 5) so a hardcoded AddMinutes(5) would fail here.
+        var repository = new VehicleRepository(context, new RedirectOptions { CooldownMinutes = 7 });
+
+        // Act
+        var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].RedirectCooldownExpiresAt.Should().Be(lastRedirectedAt.AddMinutes(7));
     }
 
     [Fact]
@@ -325,7 +464,7 @@ public class VehicleRepositoryDispatcherFleetTests
             new Vehicle { Id = Guid.NewGuid(), DealerId = otherDealerId, Registration = "V-002", ClaimedByRepId = null });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetDispatcherFleetByDealerAsync(dealerId);

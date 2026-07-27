@@ -23,7 +23,8 @@ public class GetDispatcherFleetEndpointTests
         Guid? ActiveRequestId,
         string? ActiveRequestTier,
         string? ActiveRequestTitle,
-        bool HumanControlled);
+        bool HumanControlled,
+        DateTime? RedirectCooldownExpiresAt);
 
     private record LastPositionResponse(double Lat, double Lng);
 
@@ -52,7 +53,8 @@ public class GetDispatcherFleetEndpointTests
         bool humanControlled,
         Guid requestId,
         double vehicleLat,
-        double vehicleLng)
+        double vehicleLng,
+        DateTime? lastRedirectedAt = null)
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -68,6 +70,7 @@ public class GetDispatcherFleetEndpointTests
             State = state,
             HumanControlled = humanControlled,
             ActiveRequestId = requestId,
+            LastRedirectedAt = lastRedirectedAt,
             UpdatedAt = DateTime.UtcNow
         });
         db.ServiceRequests.Add(new ServiceRequest
@@ -229,5 +232,33 @@ public class GetDispatcherFleetEndpointTests
         entry!["activeRequestTitle"].Should().NotBeNull(
             "the wire field must be serialised as camelCase 'activeRequestTitle'");
         entry["activeRequestTitle"]!.GetValue<string>().Should().Be("Hydraulic system fault");
+    }
+
+    [Fact]
+    public async Task GivenARepWithLastRedirectedAt_WhenGetFleetCalledAsDispatcher_ThenResponseContainsRedirectCooldownExpiresAtOnWire()
+    {
+        // Arrange — the default RedirectOptions.CooldownMinutes is 5 (appsettings.json "Redirect").
+        const int cooldownMinutes = 5;
+        var lastRedirectedAt = DateTime.UtcNow.AddMinutes(-2);
+        await using var factory = new CustomWebApplicationFactory();
+        var requestId = Guid.NewGuid();
+        await ClaimVehicleWithActiveRequestAsync(
+            factory, SeedConstants.Vehicle1Id, SeedConstants.Rep1Id,
+            RepState.EnRoute, true, requestId, 41.5, -93.6, lastRedirectedAt);
+        var client = await CreateAuthenticatedClientAsync(factory, "alex@dealer.com");
+
+        // Act
+        var response = await client.GetAsync("/dispatcher/fleet");
+        var rawJson = await response.Content.ReadAsStringAsync();
+
+        // Assert — parse the raw payload (not the deserialised DTO) so a wire-field rename is caught.
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var entries = JsonNode.Parse(rawJson)!.AsArray();
+        var entry = entries.Single(
+            e => (Guid)e!["vehicleId"]!.GetValue<Guid>() == SeedConstants.Vehicle1Id);
+        entry!["redirectCooldownExpiresAt"].Should().NotBeNull(
+            "the wire field must be serialised as camelCase 'redirectCooldownExpiresAt'");
+        entry["redirectCooldownExpiresAt"]!.GetValue<DateTime>()
+            .Should().BeCloseTo(lastRedirectedAt.AddMinutes(cooldownMinutes), TimeSpan.FromSeconds(1));
     }
 }

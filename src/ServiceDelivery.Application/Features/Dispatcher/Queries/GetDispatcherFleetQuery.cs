@@ -14,6 +14,7 @@ public record DispatcherFleetEntryDto(
     Guid? ActiveRequestId,
     string? ActiveRequestTier,
     string? ActiveRequestTitle,
-    bool HumanControlled);
+    bool HumanControlled,
+    DateTime? RedirectCooldownExpiresAt);
 
 public record LastPositionDto(double Lat, double Lng);
