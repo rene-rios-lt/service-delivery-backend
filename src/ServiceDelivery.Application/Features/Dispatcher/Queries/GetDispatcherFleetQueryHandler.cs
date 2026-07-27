@@ -40,7 +40,8 @@ public class GetDispatcherFleetQueryHandler
                 e.ActiveRequestId,
                 e.ActiveRequestTier?.ToString(),
                 e.ActiveRequestTitle,
-                e.HumanControlled);
+                e.HumanControlled,
+                e.RedirectCooldownExpiresAt);
         }).ToList();
     }
 }

@@ -13,5 +13,6 @@ public record DispatcherFleetEntry(
     double? LastLongitude,
     Guid? ActiveRequestId,
     ServiceTier? ActiveRequestTier,
-    string? ActiveRequestTitle
+    string? ActiveRequestTitle,
+    DateTime? RedirectCooldownExpiresAt
 );

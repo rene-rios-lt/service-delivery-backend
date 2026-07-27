@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Domain.Entities;
 using ServiceDelivery.Infrastructure.Persistence;
 using ServiceDelivery.Infrastructure.Repositories;
@@ -31,7 +32,7 @@ public class VehicleRepositoryClaimedRepTests
             new Vehicle { Id = Guid.NewGuid(), DealerId = dealerId, Registration = "V-003", ClaimedByRepId = null });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetByClaimedRepIdAsync(repId);
@@ -55,7 +56,7 @@ public class VehicleRepositoryClaimedRepTests
             new Vehicle { Id = Guid.NewGuid(), DealerId = dealerId, Registration = "V-001", ClaimedByRepId = null });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetByClaimedRepIdAsync(repId);

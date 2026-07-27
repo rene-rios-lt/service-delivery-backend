@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Domain.Entities;
 using ServiceDelivery.Domain.Enums;
 using ServiceDelivery.Infrastructure.Persistence;
@@ -32,7 +33,7 @@ public class VehicleRepositoryFleetJobStateTests
         context.ServiceRequests.Add(new ServiceRequest { Id = requestId, DealerId = dealerId, Latitude = 41.5, Longitude = -93.6, Status = ServiceRequestStatus.Assigned, AssignedRepId = repId });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetFleetJobStateByDealerAsync(dealerId);
@@ -61,7 +62,7 @@ public class VehicleRepositoryFleetJobStateTests
         context.RepStateRecords.Add(new RepStateRecord { RepId = repId, State = RepState.Available, HumanControlled = false, ActiveRequestId = null });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetFleetJobStateByDealerAsync(dealerId);
@@ -88,7 +89,7 @@ public class VehicleRepositoryFleetJobStateTests
         context.Vehicles.Add(new Vehicle { Id = vehicleId, DealerId = dealerId, Registration = "V-001", ClaimedByRepId = null });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetFleetJobStateByDealerAsync(dealerId);
@@ -118,7 +119,7 @@ public class VehicleRepositoryFleetJobStateTests
             new Vehicle { Id = Guid.NewGuid(), DealerId = otherDealerId, Registration = "V-002", ClaimedByRepId = null });
         await context.SaveChangesAsync();
 
-        var repository = new VehicleRepository(context);
+        var repository = new VehicleRepository(context, new RedirectOptions());
 
         // Act
         var result = await repository.GetFleetJobStateByDealerAsync(dealerId);

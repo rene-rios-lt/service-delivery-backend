@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ServiceDelivery.Domain.Entities;
 using ServiceDelivery.Domain.Enums;
+using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Domain.Interfaces;
 using ServiceDelivery.Domain.Projections;
 using ServiceDelivery.Infrastructure.Persistence;
@@ -10,10 +11,12 @@ namespace ServiceDelivery.Infrastructure.Repositories;
 public class VehicleRepository : IVehicleRepository
 {
     private readonly AppDbContext _context;
+    private readonly RedirectOptions _redirectOptions;
 
-    public VehicleRepository(AppDbContext context)
+    public VehicleRepository(AppDbContext context, RedirectOptions redirectOptions)
     {
         _context = context;
+        _redirectOptions = redirectOptions;
     }
 
     public async Task<IReadOnlyList<Vehicle>> GetAllByDealerIdAsync(
@@ -59,6 +62,8 @@ public class VehicleRepository : IVehicleRepository
         Guid dealerId,
         CancellationToken cancellationToken = default)
     {
+        var cooldownMinutes = _redirectOptions.CooldownMinutes;
+
         return await _context.Vehicles
             .Where(v => v.DealerId == dealerId)
             .GroupJoin(_context.RepStateRecords,
@@ -99,7 +104,10 @@ public class VehicleRepository : IVehicleRepository
                     x.Vehicle.LastLongitude,
                     x.Request != null ? (Guid?)x.Request.Id : null,
                     x.Request != null ? (ServiceTier?)x.Request.Tier : null,
-                    dtc != null ? dtc.HumanReadableTitle : null))
+                    dtc != null ? dtc.HumanReadableTitle : null,
+                    x.State != null && x.State.LastRedirectedAt.HasValue
+                        ? x.State.LastRedirectedAt.Value.AddMinutes(cooldownMinutes)
+                        : (DateTime?)null))
             .ToListAsync(cancellationToken);
     }
 

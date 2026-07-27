@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using ServiceDelivery.Application.Common.Interfaces;
 using ServiceDelivery.Domain.Entities;
 using ServiceDelivery.Infrastructure.Persistence;
 using ServiceDelivery.Infrastructure.Repositories;
@@ -66,8 +67,8 @@ public class VehicleConcurrencyTests : IDisposable
         using var context1 = new AppDbContext(_options);
         using var context2 = new AppDbContext(_options);
 
-        var repo1 = new VehicleRepository(context1);
-        var repo2 = new VehicleRepository(context2);
+        var repo1 = new VehicleRepository(context1, new RedirectOptions());
+        var repo2 = new VehicleRepository(context2, new RedirectOptions());
 
         var vehicle1 = await repo1.GetByIdAsync(vehicleId);
         var vehicle2 = await repo2.GetByIdAsync(vehicleId);

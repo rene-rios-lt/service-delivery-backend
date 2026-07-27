@@ -1255,7 +1255,8 @@
           "activeRequestId",
           "activeRequestTier",
           "activeRequestTitle",
-          "humanControlled"
+          "humanControlled",
+          "redirectCooldownExpiresAt"
         ],
         "type": "object",
         "properties": {
@@ -1310,6 +1311,13 @@
           },
           "humanControlled": {
             "type": "boolean"
+          },
+          "redirectCooldownExpiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
