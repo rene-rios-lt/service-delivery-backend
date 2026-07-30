@@ -40,8 +40,15 @@ public class ServiceRequestRepository : IServiceRequestRepository
     }
 
     public async Task<IReadOnlyList<ServiceRequest>> GetPendingByDealerAsync(Guid dealerId, CancellationToken cancellationToken = default)
+        // BUG-064: return the dealer's Pending set in tier-arbitration order so that when the matcher
+        // serves them on a rep free-up (MatchingService.RunForPendingByDealerAsync), the highest-tier
+        // request is offered first and a waiting Gold is never stranded behind a Silver. ServiceTier is
+        // None=0, Bronze=1, Silver=2, Gold=3, so OrderByDescending(Tier) yields Gold→Silver→Bronze;
+        // ThenBy(CreatedAt) breaks ties oldest-first (FCFS) within a tier.
         => await _context.ServiceRequests
             .Where(r => r.DealerId == dealerId && r.Status == ServiceRequestStatus.Pending)
+            .OrderByDescending(r => r.Tier)
+            .ThenBy(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
 
     public async Task<ServiceRequestDetail?> GetDetailByIdAsync(Guid requestId, Guid dealerId, CancellationToken cancellationToken = default)

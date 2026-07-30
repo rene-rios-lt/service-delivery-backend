@@ -15,6 +15,19 @@ The top result receives a job offer. If they decline or expire, repeat from step
 
 If no candidates remain, the request stays in `Pending` and the dispatcher is notified.
 
+### Tier Arbitration When Serving the Pending Set (BUG-064)
+
+The six steps above choose the best rep for **one** request. When a rep frees up (job completion or vehicle claim) and the backend re-runs matching across **all** of a dealer's `Pending` requests, the order in which those requests are served matters — a freed-up rep must go to the highest-priority waiter first.
+
+**Step 0 — Order the dealer's Pending set before iterating it:** highest service tier first, then oldest `CreatedAt` first within a tier.
+
+- Tier order: `Gold` → `Silver` → `Bronze` (`ServiceTier` is `None=0, Bronze=1, Silver=2, Gold=3`, so a descending sort by tier yields Gold first).
+- Within a tier: oldest request first (FCFS by `CreatedAt`).
+
+This guarantees a waiting `Gold` is never stranded behind a `Silver` when a rep becomes available and multiple requests are competing for it.
+
+**Scope — this ordering applies only to the free-up / re-match pass** (the path that serves the whole dealer Pending set). **Submit-time single-request matching is unchanged:** when a request is first submitted it is matched on its own (first-come-first-served); the system does not preempt an in-flight offer to a lower-tier request on behalf of a newly arriving higher-tier one. Preempting an already-`EnRoute` rep for a higher-tier request remains a **manual dispatcher redirect** (see Priority and Redirect Rules), which enforces the tier, cooldown, and proximity protections.
+
 These candidate rules are **unchanged** by Human Takeover. Simulator-operated reps are real `Available` reps backed by real rep sessions, so the simulator and a human are indistinguishable to the matcher: candidates are always reps with an active `RepSession`, in `Available` state, with an equipment match, in the same dealer, sorted by Haversine distance. A `human-controlled` rep is matched on exactly the same terms as a simulator-operated one.
 
 ---
